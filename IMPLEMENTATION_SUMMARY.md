@@ -70,8 +70,7 @@ print(agent.format_results(results))
 - **Example scripts**: `examples/example_usage.py`
 
 ### 7. Configuration & Setup
-- **requirements.txt**: All Python dependencies
-- **setup.py**: Package installation configuration
+- **pyproject.toml**: Poetry configuration and all Python dependencies
 - **.env.example**: Environment variable template
 - **.gitignore**: Proper exclusions for Python projects
 
@@ -167,11 +166,10 @@ research-viz-agent/
 │   ├── API.md
 │   ├── CONFIGURATION.md
 │   └── ARCHITECTURE.md
-├── requirements.txt              # Dependencies
-├── setup.py                      # Package setup
-├── .env.example                  # Environment template
-├── README.md                     # Main documentation
-└── CONTRIBUTING.md               # Contributing guide
+├── pyproject.toml                 # Poetry configuration & dependencies
+├── .env.example                   # Environment template
+├── README.md                      # Main documentation
+└── CONTRIBUTING.md                # Contributing guide
 ```
 
 ## Usage Examples

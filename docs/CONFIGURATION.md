@@ -112,6 +112,6 @@ agent = MedicalCVResearchAgent(
 - Verify the research sources are accessible
 
 ### Import Errors
-- Ensure all dependencies are installed: `pip install -r requirements.txt`
+- Ensure all dependencies are installed: `poetry install` or `pip install -e .`
 - Check Python version is 3.9+
 - Try reinstalling in a fresh virtual environment

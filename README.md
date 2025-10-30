@@ -23,6 +23,7 @@ This agent uses **LangChain**, **LangGraph**, and **MCP (Model Context Protocol)
 ### Prerequisites
 
 - Python 3.9 or higher
+- Poetry (install via `pip install poetry` or see [Poetry installation](https://python-poetry.org/docs/#installation))
 - OpenAI API key
 
 ### Setup
@@ -33,12 +34,17 @@ git clone https://github.com/ktdiedrich/research-viz-agent.git
 cd research-viz-agent
 ```
 
-2. Install dependencies:
+2. Install dependencies with Poetry:
 ```bash
-pip install -r requirements.txt
+poetry install
 ```
 
-Or install in development mode:
+Or for development with additional tools:
+```bash
+poetry install --with dev
+```
+
+Alternatively, install with pip:
 ```bash
 pip install -e .
 ```

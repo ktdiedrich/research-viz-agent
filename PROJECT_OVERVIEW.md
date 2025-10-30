@@ -11,7 +11,10 @@ AI agent that automatically researches and summarizes medical computer vision AI
 
 ```bash
 # Install
-pip install -r requirements.txt
+poetry install
+
+# Or with pip
+pip install -e .
 
 # Configure (add your OpenAI API key)
 cp .env.example .env
@@ -102,8 +105,7 @@ research-viz-agent/
 ├── examples/                 # Example scripts
 ├── tests/                    # Test suite
 ├── docs/                     # Documentation
-├── requirements.txt          # Dependencies
-├── setup.py                  # Package setup
+├── pyproject.toml            # Poetry configuration & dependencies
 └── README.md                 # Main docs
 ```
 

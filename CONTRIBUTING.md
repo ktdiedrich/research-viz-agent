@@ -8,8 +8,8 @@ Thank you for your interest in contributing! This document provides guidelines f
 2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/research-viz-agent.git`
 3. Create a virtual environment: `python -m venv venv`
 4. Activate it: `source venv/bin/activate` (Linux/Mac) or `venv\Scripts\activate` (Windows)
-5. Install dependencies: `pip install -r requirements.txt`
-6. Install in development mode: `pip install -e .`
+5. Install with Poetry: `poetry install --with dev`
+6. Or install with pip: `pip install -e .`
 
 ## Development Workflow
 

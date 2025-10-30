@@ -9,10 +9,10 @@ Get started with the Medical CV Research Agent in 5 minutes!
 git clone https://github.com/ktdiedrich/research-viz-agent.git
 cd research-viz-agent
 
-# Install dependencies
-pip install -r requirements.txt
+# Install with Poetry (recommended)
+poetry install
 
-# Or install the package
+# Or install with pip
 pip install -e .
 ```
 
@@ -156,8 +156,11 @@ This will test:
 
 ### Import errors
 ```bash
-# Reinstall dependencies
-pip install -r requirements.txt
+# Reinstall with Poetry
+poetry install
+
+# Or reinstall with pip
+pip install -e .
 
 # Or install specific packages
 pip install langchain langchain-openai langgraph arxiv biopython
