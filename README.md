@@ -41,7 +41,7 @@ uv sync
 
 Or for development with additional tools:
 ```bash
-uv sync --extra dev
+uv sync --group dev
 ```
 
 Alternatively, install with pip:
