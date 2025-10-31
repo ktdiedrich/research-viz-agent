@@ -7,6 +7,8 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.messages import HumanMessage, SystemMessage
 import operator
+import backoff
+from openai import RateLimitError, APIError
 
 
 class AgentState(TypedDict):
@@ -56,6 +58,17 @@ class ResearchWorkflow:
         workflow.add_edge("summarize", END)
         
         return workflow.compile()
+    
+    @backoff.on_exception(
+        backoff.expo,
+        (RateLimitError, APIError),
+        max_tries=3,
+        factor=2,
+        max_value=60
+    )
+    def _invoke_llm_with_backoff(self, messages):
+        """Invoke LLM with exponential backoff for rate limiting."""
+        return self.llm.invoke(messages)
     
     def _search_arxiv(self, state: AgentState) -> AgentState:
         """Search arXiv for relevant papers."""
@@ -116,11 +129,15 @@ class ResearchWorkflow:
             ))
         ])
         
-        # Generate summary
+        # Generate summary with rate limiting
         messages = prompt.format_messages()
-        response = self.llm.invoke(messages)
+        try:
+            response = self._invoke_llm_with_backoff(messages)
+            state["summary"] = response.content
+        except Exception as e:
+            print(f"Error generating summary after retries: {e}")
+            state["summary"] = "Summary generation failed due to API limitations. Please try again later."
         
-        state["summary"] = response.content
         return state
     
     def _prepare_context(
