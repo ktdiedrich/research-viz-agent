@@ -15,7 +15,7 @@ def test_arxiv():
     
     tool = ArxivTool()
     print("✓ ArxivTool initialized")
-    MAX_RESULTS: Final[int] = 5
+    MAX_RESULTS: Final[int] = 6
     print("\nSearching for 'medical imaging deep learning'...")
     results = tool.search_papers("medical imaging deep learning", max_results=MAX_RESULTS)
     

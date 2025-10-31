@@ -24,7 +24,8 @@ class MedicalCVResearchAgent:
         huggingface_token: Optional[str] = None,
         pubmed_email: str = "research@example.com",
         model_name: str = "gpt-3.5-turbo",
-        temperature: float = 0.7
+        temperature: float = 0.7,
+        max_results: int = 20
     ):
         """
         Initialize the Medical CV Research Agent.
@@ -35,6 +36,7 @@ class MedicalCVResearchAgent:
             pubmed_email: Email for PubMed API
             model_name: OpenAI model to use
             temperature: Temperature for LLM responses
+            max_results: Maximum number of results to fetch from each source
         """
         # Load environment variables
         load_dotenv()
@@ -58,12 +60,16 @@ class MedicalCVResearchAgent:
         self.pubmed_tool = create_pubmed_tool(email=pubmed_email)
         self.huggingface_tool = create_huggingface_tool(token=self.huggingface_token)
         
+        # Store max_results for workflow
+        self.max_results = max_results
+        
         # Initialize workflow
         self.workflow = ResearchWorkflow(
             llm=self.llm,
             arxiv_tool=self.arxiv_tool,
             pubmed_tool=self.pubmed_tool,
-            huggingface_tool=self.huggingface_tool
+            huggingface_tool=self.huggingface_tool,
+            max_results=max_results
         )
     
     def research(self, query: str) -> Dict:
@@ -97,12 +103,13 @@ class MedicalCVResearchAgent:
             'total_models': len(results.get('huggingface_results', []))
         }
     
-    def format_results(self, results: Dict) -> str:
+    def format_results(self, results: Dict, display_limit: int = 5) -> str:
         """
         Format research results for display.
         
         Args:
             results: Results dictionary from research()
+            display_limit: Number of results to display from each source
             
         Returns:
             Formatted string of results
@@ -128,25 +135,34 @@ class MedicalCVResearchAgent:
         # ArXiv papers
         if results['arxiv_results']:
             output.append("\n### ArXiv Papers ###\n")
-            for i, paper in enumerate(results['arxiv_results'][:5], 1):
+            for i, paper in enumerate(results['arxiv_results'][:display_limit], 1):
                 output.append(f"{i}. {paper.get('title', 'N/A')}")
                 output.append(f"   URL: {paper.get('pdf_url', 'N/A')}")
                 output.append(f"   Published: {paper.get('published', 'N/A')}\n")
+            
+            if len(results['arxiv_results']) > display_limit:
+                output.append(f"   ... and {len(results['arxiv_results']) - display_limit} more ArXiv papers\n")
         
         # PubMed papers
         if results['pubmed_results']:
             output.append("\n### PubMed Papers ###\n")
-            for i, paper in enumerate(results['pubmed_results'][:5], 1):
+            for i, paper in enumerate(results['pubmed_results'][:display_limit], 1):
                 output.append(f"{i}. {paper.get('title', 'N/A')}")
                 output.append(f"   PMID: {paper.get('pmid', 'N/A')}")
                 output.append(f"   Journal: {paper.get('journal', 'N/A')}\n")
+            
+            if len(results['pubmed_results']) > display_limit:
+                output.append(f"   ... and {len(results['pubmed_results']) - display_limit} more PubMed papers\n")
         
         # HuggingFace models
         if results['huggingface_results']:
             output.append("\n### HuggingFace Models ###\n")
-            for i, model in enumerate(results['huggingface_results'][:5], 1):
+            for i, model in enumerate(results['huggingface_results'][:display_limit], 1):
                 output.append(f"{i}. {model.get('model_id', 'N/A')}")
                 output.append(f"   URL: {model.get('model_card_url', 'N/A')}")
                 output.append(f"   Downloads: {model.get('downloads', 0)}\n")
+            
+            if len(results['huggingface_results']) > display_limit:
+                output.append(f"   ... and {len(results['huggingface_results']) - display_limit} more HuggingFace models\n")
         
         return "\n".join(output)

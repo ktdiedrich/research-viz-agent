@@ -24,7 +24,7 @@ class AgentState(TypedDict):
 class ResearchWorkflow:
     """LangGraph workflow for coordinating research across multiple sources."""
     
-    def __init__(self, llm: ChatOpenAI, arxiv_tool, pubmed_tool, huggingface_tool):
+    def __init__(self, llm: ChatOpenAI, arxiv_tool, pubmed_tool, huggingface_tool, max_results: int = 20):
         """
         Initialize the research workflow.
         
@@ -33,11 +33,13 @@ class ResearchWorkflow:
             arxiv_tool: Tool for searching arXiv
             pubmed_tool: Tool for searching PubMed
             huggingface_tool: Tool for searching HuggingFace
+            max_results: Maximum number of results to fetch from each source
         """
         self.llm = llm
         self.arxiv_tool = arxiv_tool
         self.pubmed_tool = pubmed_tool
         self.huggingface_tool = huggingface_tool
+        self.max_results = max_results
         self.graph = self._build_graph()
     
     def _build_graph(self) -> StateGraph:
@@ -75,7 +77,7 @@ class ResearchWorkflow:
         query = state.get("query", "")
         print(f"Searching arXiv for: {query}")
         
-        results = self.arxiv_tool.search_medical_cv_models(query)
+        results = self.arxiv_tool.search_medical_cv_models(query, max_results=self.max_results)
         state["arxiv_results"] = results
         return state
     
@@ -84,7 +86,7 @@ class ResearchWorkflow:
         query = state.get("query", "")
         print(f"Searching PubMed for: {query}")
         
-        results = self.pubmed_tool.search_medical_cv_models(query)
+        results = self.pubmed_tool.search_medical_cv_models(query, max_results=self.max_results)
         state["pubmed_results"] = results
         return state
     
@@ -93,7 +95,7 @@ class ResearchWorkflow:
         query = state.get("query", "")
         print(f"Searching HuggingFace for: {query}")
         
-        results = self.huggingface_tool.search_medical_cv_models(query)
+        results = self.huggingface_tool.search_medical_cv_models(query, max_results=self.max_results)
         state["huggingface_results"] = results
         return state
     

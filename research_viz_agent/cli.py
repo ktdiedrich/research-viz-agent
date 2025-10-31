@@ -17,6 +17,8 @@ Examples:
   %(prog)s "lung cancer detection"
   %(prog)s "skin lesion classification" --email your@email.com
   %(prog)s "brain tumor segmentation" --output results.txt
+  %(prog)s "lung cancer detection" --display-results 10
+  %(prog)s "radiology AI" --max-results 50 --display-results 15
         """
     )
     
@@ -53,6 +55,20 @@ Examples:
         help="Save results to file"
     )
     
+    parser.add_argument(
+        "--max-results",
+        type=int,
+        default=20,
+        help="Maximum number of results to fetch from each source (default: 20)"
+    )
+    
+    parser.add_argument(
+        "--display-results",
+        type=int,
+        default=5,
+        help="Number of results to display from each source (default: 5)"
+    )
+    
     args = parser.parse_args()
     
     try:
@@ -61,12 +77,13 @@ Examples:
         agent = MedicalCVResearchAgent(
             pubmed_email=args.email,
             model_name=args.model,
-            temperature=args.temperature
+            temperature=args.temperature,
+            max_results=args.max_results
         )
         
         # Run research
         results = agent.research(args.query)
-        formatted_output = agent.format_results(results)
+        formatted_output = agent.format_results(results, display_limit=args.display_results)
         
         # Display results
         print(formatted_output)
