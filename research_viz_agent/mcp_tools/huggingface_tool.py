@@ -217,11 +217,13 @@ async def search_medical_cv_models(
     
     Args:
         additional_query: Additional search terms to refine the query (optional)
+        max_results: Maximum number of results to return (optional, default: 20)
     """
     additional_query = arguments.get("additional_query", "")
+    max_results = arguments.get("max_results", 20)
     
     try:
-        results = huggingface_tool.search_medical_cv_models(additional_query)
+        results = huggingface_tool.search_medical_cv_models(additional_query, max_results)
         
         if not results:
             return [types.TextContent(
