@@ -23,7 +23,7 @@ This agent uses **LangChain**, **LangGraph**, and **MCP (Model Context Protocol)
 ### Prerequisites
 
 - Python 3.12 or higher
-- Poetry (install via `pip install poetry` or see [Poetry installation](https://python-poetry.org/docs/#installation))
+- UV (install via `pip install uv` or see [UV installation](https://docs.astral.sh/uv/getting-started/installation/))
 - OpenAI API key
 
 ### Setup
@@ -34,14 +34,14 @@ git clone https://github.com/ktdiedrich/research-viz-agent.git
 cd research-viz-agent
 ```
 
-2. Install dependencies with Poetry:
+2. Install dependencies with UV:
 ```bash
-poetry install
+uv sync
 ```
 
 Or for development with additional tools:
 ```bash
-poetry install --with dev
+uv sync --group dev
 ```
 
 Alternatively, install with pip:
@@ -55,25 +55,36 @@ cp .env.example .env
 # Edit .env and add your OPENAI_API_KEY
 ```
 
-4. Launch poetry shell evnvironment on command line with environment prompt.
-`$(poetry env activate)`
+4. Activate the UV virtual environment:
+```bash
+# UV automatically manages the virtual environment
+# To run commands in the environment, prefix with 'uv run'
+# or activate manually:
+source .venv/bin/activate  # Linux/macOS
+# or
+.venv\Scripts\activate     # Windows
+```
 
 ## Usage
 
 ### Command Line Interface
 
 ```bash
-# Basic usage
-python -m research_viz_agent.cli "lung cancer detection"
+# Basic usage (with UV)
+uv run python -m research_viz_agent.cli "lung cancer detection"
 
 # With custom email for PubMed
-python -m research_viz_agent.cli "skin lesion classification" --email your@email.com
+uv run python -m research_viz_agent.cli "skin lesion classification" --email your@email.com
 
 # Save results to file
-python -m research_viz_agent.cli "brain tumor segmentation" --output results.txt
+uv run python -m research_viz_agent.cli "brain tumor segmentation" --output results.txt
 
 # Use GPT-4
-python -m research_viz_agent.cli "retinal disease detection" --model gpt-4
+uv run python -m research_viz_agent.cli "retinal disease detection" --model gpt-4
+
+# Or activate environment first, then run normally:
+# source .venv/bin/activate
+# python -m research_viz_agent.cli "lung cancer detection"
 ```
 
 ### Python API
@@ -104,7 +115,7 @@ print(f"Summary: {results['summary']}")
 
 Run the included example:
 ```bash
-python examples/example_usage.py
+uv run python examples/example_usage.py
 ```
 
 ## Architecture
@@ -133,6 +144,39 @@ research-viz-agent/
 3. **Data Aggregation**: Results are collected and structured
 4. **AI Summarization**: LangChain generates a comprehensive summary
 5. **Output Formatting**: Results are formatted for display
+
+## UV Package Management
+
+This project uses [UV](https://docs.astral.sh/uv/) for fast, reliable Python package management and project setup.
+
+### Key UV Commands
+
+```bash
+# Install dependencies and create virtual environment
+uv sync
+
+# Add a new dependency
+uv add package-name
+
+# Add a development dependency
+uv add --dev package-name
+
+# Run a command in the UV environment
+uv run python script.py
+
+# Run tests
+uv run pytest
+
+# Install the package in editable mode
+uv pip install -e .
+```
+
+### Why UV?
+
+- **Fast**: 10-100x faster than pip and poetry
+- **Reliable**: Deterministic resolution with lockfiles
+- **Simple**: No separate virtual environment management needed
+- **Compatible**: Works with existing Python packaging standards
 
 ## Configuration
 
