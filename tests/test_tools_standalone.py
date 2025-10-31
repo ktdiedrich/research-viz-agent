@@ -15,7 +15,7 @@ def test_arxiv():
     
     tool = ArxivTool()
     print("✓ ArxivTool initialized")
-    MAX_RESULTS: Final[int] = 5
+    MAX_RESULTS: Final[int] = 6
     print("\nSearching for 'medical imaging deep learning'...")
     results = tool.search_papers("medical imaging deep learning", max_results=MAX_RESULTS)
     
@@ -26,7 +26,14 @@ def test_arxiv():
         print(f"   URL: {paper['pdf_url']}")
         print(f"   Categories: {', '.join(paper['categories'])}")
     
-    return len(results) > 0
+    # Assert that we found some results
+    assert len(results) > 0, "ArXiv search should return at least one result"
+    
+    # Assert that each result has required fields
+    for result in results:
+        assert 'title' in result, "Result should have a title"
+        assert 'authors' in result, "Result should have authors"
+        assert 'pdf_url' in result, "Result should have a PDF URL"
 
 
 def test_pubmed():
@@ -51,7 +58,14 @@ def test_pubmed():
         abstract = paper['abstract'][:150] + "..." if len(paper['abstract']) > 150 else paper['abstract']
         print(f"   Abstract: {abstract}")
     
-    return len(results) > 0
+    # Assert that we found some results
+    assert len(results) > 0, "PubMed search should return at least one result"
+    
+    # Assert that each result has required fields
+    for result in results:
+        assert 'title' in result, "Result should have a title"
+        assert 'pmid' in result, "Result should have a PMID"
+        assert 'journal' in result, "Result should have a journal"
 
 
 def test_huggingface():
@@ -76,7 +90,14 @@ def test_huggingface():
         print(f"   Downloads: {model['downloads']}")
         print(f"   URL: {model['model_card_url']}")
     
-    return len(results) > 0
+    # Assert that we found some results
+    assert len(results) > 0, "HuggingFace search should return at least one result"
+    
+    # Assert that each result has required fields
+    for result in results:
+        assert 'model_id' in result, "Result should have a model_id"
+        assert 'author' in result, "Result should have an author"
+        assert 'model_card_url' in result, "Result should have a model card URL"
 
 
 def main():
@@ -89,20 +110,29 @@ def main():
     
     results = {}
     
+    # Test ArXiv
     try:
-        results['arxiv'] = test_arxiv()
+        test_arxiv()
+        results['arxiv'] = True
+        print("\n✓ ArXiv test passed")
     except Exception as e:
         print(f"\n✗ arXiv test failed: {e}")
         results['arxiv'] = False
     
+    # Test PubMed
     try:
-        results['pubmed'] = test_pubmed()
+        test_pubmed()
+        results['pubmed'] = True
+        print("\n✓ PubMed test passed")
     except Exception as e:
         print(f"\n✗ PubMed test failed: {e}")
         results['pubmed'] = False
     
+    # Test HuggingFace
     try:
-        results['huggingface'] = test_huggingface()
+        test_huggingface()
+        results['huggingface'] = True
+        print("\n✓ HuggingFace test passed")
     except Exception as e:
         print(f"\n✗ HuggingFace test failed: {e}")
         results['huggingface'] = False
