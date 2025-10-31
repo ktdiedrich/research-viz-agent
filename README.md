@@ -22,7 +22,7 @@ This agent uses **LangChain**, **LangGraph**, and **MCP (Model Context Protocol)
 
 ### Prerequisites
 
-- Python 3.9 or higher
+- Python 3.12 or higher
 - Poetry (install via `pip install poetry` or see [Poetry installation](https://python-poetry.org/docs/#installation))
 - OpenAI API key
 
@@ -54,6 +54,9 @@ pip install -e .
 cp .env.example .env
 # Edit .env and add your OPENAI_API_KEY
 ```
+
+4. Launch poetry shell evnvironment on command line with environment prompt.
+`$(poetry env activate)`
 
 ## Usage
 

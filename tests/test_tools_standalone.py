@@ -2,6 +2,7 @@
 Standalone script to test individual MCP tools without requiring OpenAI API.
 """
 import sys
+from typing import Final
 
 
 def test_arxiv():
@@ -14,14 +15,14 @@ def test_arxiv():
     
     tool = ArxivTool()
     print("✓ ArxivTool initialized")
-    
+    MAX_RESULTS: Final[int] = 5
     print("\nSearching for 'medical imaging deep learning'...")
-    results = tool.search_papers("medical imaging deep learning", max_results=3)
+    results = tool.search_papers("medical imaging deep learning", max_results=MAX_RESULTS)
     
     print(f"\nFound {len(results)} papers:")
     for i, paper in enumerate(results, 1):
         print(f"\n{i}. {paper['title']}")
-        print(f"   Authors: {', '.join(paper['authors'][:3])}")
+        print(f"   Authors: {', '.join(paper['authors'][:MAX_RESULTS])}")
         print(f"   URL: {paper['pdf_url']}")
         print(f"   Categories: {', '.join(paper['categories'])}")
     
