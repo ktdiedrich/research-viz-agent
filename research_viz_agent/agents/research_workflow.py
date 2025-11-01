@@ -8,7 +8,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.messages import HumanMessage, SystemMessage
 import operator
 import backoff
-from openai import RateLimitError, APIError, AuthenticationError
+from openai import RateLimitError
 
 
 class AgentState(TypedDict):
