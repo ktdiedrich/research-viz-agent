@@ -10,7 +10,7 @@ from research_viz_agent.mcp_tools.arxiv_tool import create_arxiv_tool
 from research_viz_agent.mcp_tools.pubmed_tool import create_pubmed_tool
 from research_viz_agent.mcp_tools.huggingface_tool import create_huggingface_tool
 from research_viz_agent.agents.research_workflow import ResearchWorkflow
-from research_viz_agent.utils.rag_store import create_rag_store, ResearchRAGStore
+from research_viz_agent.utils.rag_store import create_rag_store
 
 
 class MedicalCVResearchAgent:
