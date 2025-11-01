@@ -1,14 +1,14 @@
 """
 LangGraph workflow for medical computer vision research agent.
 """
-from typing import TypedDict, Annotated, List, Dict
+from typing import TypedDict, Annotated, List, Dict, Optional
 from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.messages import HumanMessage, SystemMessage
 import operator
 import backoff
-from openai import RateLimitError, APIError
+from openai import RateLimitError
 
 
 class AgentState(TypedDict):
@@ -24,7 +24,7 @@ class AgentState(TypedDict):
 class ResearchWorkflow:
     """LangGraph workflow for coordinating research across multiple sources."""
     
-    def __init__(self, llm: ChatOpenAI, arxiv_tool, pubmed_tool, huggingface_tool, max_results: int = 20):
+    def __init__(self, llm: Optional[ChatOpenAI], arxiv_tool, pubmed_tool, huggingface_tool, max_results: int = 20):
         """
         Initialize the research workflow.
         
@@ -63,13 +63,15 @@ class ResearchWorkflow:
     
     @backoff.on_exception(
         backoff.expo,
-        (RateLimitError, APIError),
+        (RateLimitError,),  # Only retry on rate limits, not quota errors
         max_tries=3,
         factor=2,
         max_value=60
     )
     def _invoke_llm_with_backoff(self, messages):
         """Invoke LLM with exponential backoff for rate limiting."""
+        if self.llm is None:
+            raise ValueError("LLM not available - summarization disabled")
         return self.llm.invoke(messages)
     
     def _search_arxiv(self, state: AgentState) -> AgentState:
@@ -134,11 +136,48 @@ class ResearchWorkflow:
         # Generate summary with rate limiting
         messages = prompt.format_messages()
         try:
-            response = self._invoke_llm_with_backoff(messages)
-            state["summary"] = response.content
+            if self.llm is None:
+                # Skip AI summarization, create fallback summary
+                fallback_summary = self._create_fallback_summary(arxiv_results, pubmed_results, huggingface_results, query)
+                state["summary"] = f"""
+🤖 AI Summarization Disabled
+
+{fallback_summary}
+
+Note: AI-powered summarization was skipped. To enable AI summarization, run without --no-summary flag and ensure your OpenAI API key is configured.
+"""
+            else:
+                response = self._invoke_llm_with_backoff(messages)
+                state["summary"] = response.content
         except Exception as e:
-            print(f"Error generating summary after retries: {e}")
-            state["summary"] = "Summary generation failed due to API limitations. Please try again later."
+            error_msg = str(e)
+            print(f"Error generating summary: {e}")
+            
+            # Provide specific guidance based on error type
+            if "insufficient_quota" in error_msg or "quota" in error_msg.lower():
+                fallback_summary = self._create_fallback_summary(arxiv_results, pubmed_results, huggingface_results, query)
+                state["summary"] = f"""
+⚠️ OpenAI API Quota Exceeded
+
+Your OpenAI API quota has been exceeded. Please check your billing and usage at: https://platform.openai.com/account/billing
+
+Here's a basic summary of the research findings:
+
+{fallback_summary}
+
+To resolve this issue:
+1. Check your OpenAI account billing: https://platform.openai.com/account/billing
+2. Upgrade your plan or add credits if needed
+3. Wait for your quota to reset if on a free tier
+4. Use --no-rag flag to skip AI summarization and just get raw results
+
+You can still search the RAG database if it contains previous results:
+  python -m research_viz_agent.cli --rag-search "{query}"
+"""
+            elif "rate_limit" in error_msg.lower():
+                state["summary"] = f"Rate limit exceeded. Please wait a moment and try again. The research results were still collected successfully."
+            else:
+                state["summary"] = f"Summary generation failed: {error_msg}\n\nThe research results were still collected successfully. You can view them below."
         
         return state
     
@@ -186,6 +225,54 @@ class ResearchWorkflow:
                 )
         
         return "\n".join(context_parts)
+    
+    def _create_fallback_summary(
+        self,
+        arxiv_results: List[Dict],
+        pubmed_results: List[Dict], 
+        huggingface_results: List[Dict],
+        query: str
+    ) -> str:
+        """Create a basic summary without LLM when API is unavailable."""
+        summary_parts = []
+        
+        total_papers = len(arxiv_results) + len(pubmed_results)
+        total_models = len(huggingface_results)
+        
+        summary_parts.append(f"Research Query: {query}")
+        summary_parts.append(f"Total Papers Found: {total_papers} ({len(arxiv_results)} ArXiv, {len(pubmed_results)} PubMed)")
+        summary_parts.append(f"Total Models Found: {total_models} (HuggingFace)")
+        summary_parts.append("")
+        
+        if arxiv_results:
+            summary_parts.append("ArXiv Research Highlights:")
+            for i, paper in enumerate(arxiv_results[:3], 1):
+                title = paper.get('title', 'N/A')[:100] + ("..." if len(paper.get('title', '')) > 100 else "")
+                summary_parts.append(f"  {i}. {title}")
+            if len(arxiv_results) > 3:
+                summary_parts.append(f"  ... and {len(arxiv_results) - 3} more papers")
+            summary_parts.append("")
+        
+        if pubmed_results:
+            summary_parts.append("PubMed Research Highlights:")
+            for i, paper in enumerate(pubmed_results[:3], 1):
+                title = paper.get('title', 'N/A')[:100] + ("..." if len(paper.get('title', '')) > 100 else "")
+                summary_parts.append(f"  {i}. {title}")
+            if len(pubmed_results) > 3:
+                summary_parts.append(f"  ... and {len(pubmed_results) - 3} more papers")
+            summary_parts.append("")
+        
+        if huggingface_results:
+            summary_parts.append("HuggingFace Model Highlights:")
+            for i, model in enumerate(huggingface_results[:3], 1):
+                model_id = model.get('model_id', 'N/A')
+                task = model.get('pipeline_tag', 'unknown')
+                downloads = model.get('downloads', 0)
+                summary_parts.append(f"  {i}. {model_id} ({task}) - {downloads:,} downloads")
+            if len(huggingface_results) > 3:
+                summary_parts.append(f"  ... and {len(huggingface_results) - 3} more models")
+        
+        return "\n".join(summary_parts)
     
     def run(self, query: str) -> Dict:
         """

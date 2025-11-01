@@ -10,6 +10,7 @@ from research_viz_agent.mcp_tools.arxiv_tool import create_arxiv_tool
 from research_viz_agent.mcp_tools.pubmed_tool import create_pubmed_tool
 from research_viz_agent.mcp_tools.huggingface_tool import create_huggingface_tool
 from research_viz_agent.agents.research_workflow import ResearchWorkflow
+from research_viz_agent.utils.rag_store import create_rag_store
 
 
 class MedicalCVResearchAgent:
@@ -25,7 +26,10 @@ class MedicalCVResearchAgent:
         pubmed_email: str = "research@example.com",
         model_name: str = "gpt-3.5-turbo",
         temperature: float = 0.7,
-        max_results: int = 20
+        max_results: int = 20,
+        enable_rag: bool = True,
+        rag_persist_dir: str = "./chroma_db",
+        skip_openai_init: bool = False
     ):
         """
         Initialize the Medical CV Research Agent.
@@ -37,23 +41,32 @@ class MedicalCVResearchAgent:
             model_name: OpenAI model to use
             temperature: Temperature for LLM responses
             max_results: Maximum number of results to fetch from each source
+            enable_rag: Whether to enable RAG storage of results
+            rag_persist_dir: Directory to persist ChromaDB data
         """
         # Load environment variables
         load_dotenv()
         
         # Set up API keys
-        self.openai_api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
-        if not self.openai_api_key:
-            raise ValueError("OpenAI API key must be provided or set in OPENAI_API_KEY environment variable")
+        self.skip_openai_init = skip_openai_init
+        
+        if not skip_openai_init:
+            self.openai_api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
+            if not self.openai_api_key:
+                raise ValueError("OpenAI API key must be provided or set in OPENAI_API_KEY environment variable")
+            
+            # Initialize LLM
+            self.llm = ChatOpenAI(
+                api_key=self.openai_api_key,
+                model_name=model_name,
+                temperature=temperature
+            )
+        else:
+            self.openai_api_key = None
+            self.llm = None
+            print("⚠ Skipping OpenAI initialization - AI summarization disabled")
         
         self.huggingface_token = huggingface_token or os.getenv("HUGGINGFACE_TOKEN")
-        
-        # Initialize LLM
-        self.llm = ChatOpenAI(
-            api_key=self.openai_api_key,
-            model_name=model_name,
-            temperature=temperature
-        )
         
         # Initialize MCP tools
         self.arxiv_tool = create_arxiv_tool()
@@ -62,6 +75,24 @@ class MedicalCVResearchAgent:
         
         # Store max_results for workflow
         self.max_results = max_results
+        
+        # Initialize RAG store if enabled (requires OpenAI for embeddings)
+        self.enable_rag = enable_rag and not skip_openai_init
+        self.rag_store = None
+        
+        if self.enable_rag:
+            try:
+                self.rag_store = create_rag_store(
+                    persist_directory=rag_persist_dir,
+                    openai_api_key=self.openai_api_key
+                )
+                print(f"✓ RAG store initialized at {rag_persist_dir}")
+            except Exception as e:
+                print(f"⚠ RAG store initialization failed: {e}")
+                print("  Continuing without RAG functionality...")
+                self.enable_rag = False
+        elif skip_openai_init:
+            print("⚠ RAG functionality disabled (requires OpenAI API for embeddings)")
         
         # Initialize workflow
         self.workflow = ResearchWorkflow(
@@ -92,6 +123,23 @@ class MedicalCVResearchAgent:
         
         # Run the workflow
         results = self.workflow.run(query)
+        
+        # Store results in RAG store if enabled
+        if self.enable_rag and self.rag_store:
+            try:
+                print("📚 Storing results in RAG database...")
+                self.rag_store.store_research_results(
+                    arxiv_results=results.get('arxiv_results', []),
+                    pubmed_results=results.get('pubmed_results', []),
+                    huggingface_results=results.get('huggingface_results', []),
+                    query=query
+                )
+                
+                # Get collection info
+                info = self.rag_store.get_collection_info()
+                print(f"✓ Results stored. Total documents in RAG: {info.get('document_count', 'unknown')}")
+            except Exception as e:
+                print(f"⚠ Failed to store results in RAG: {e}")
         
         return {
             'query': results.get('query', ''),
@@ -164,5 +212,111 @@ class MedicalCVResearchAgent:
             
             if len(results['huggingface_results']) > display_limit:
                 output.append(f"   ... and {len(results['huggingface_results']) - display_limit} more HuggingFace models\n")
+        
+        return "\n".join(output)
+    
+    def search_rag(self, query: str, k: int = 5, source_filter: Optional[str] = None) -> Dict:
+        """
+        Search the RAG database for relevant documents.
+        
+        Args:
+            query: Search query
+            k: Number of results to return
+            source_filter: Filter by source ('arxiv', 'pubmed', 'huggingface')
+            
+        Returns:
+            Dictionary with search results and metadata
+        """
+        if not self.enable_rag or not self.rag_store:
+            return {
+                'error': 'RAG functionality not available',
+                'results': [],
+                'total_count': 0
+            }
+        
+        try:
+            if source_filter:
+                documents = self.rag_store.search_by_source(query, source_filter, k)
+            else:
+                documents = self.rag_store.similarity_search(query, k)
+            
+            results = []
+            for doc in documents:
+                results.append({
+                    'content': doc.page_content,
+                    'metadata': doc.metadata,
+                    'source': doc.metadata.get('source', 'unknown'),
+                    'type': doc.metadata.get('type', 'unknown'),
+                    'title': doc.metadata.get('title', 'N/A'),
+                    'url': doc.metadata.get('url', 'N/A')
+                })
+            
+            return {
+                'query': query,
+                'results': results,
+                'total_count': len(results),
+                'source_filter': source_filter
+            }
+            
+        except Exception as e:
+            return {
+                'error': f'RAG search failed: {str(e)}',
+                'results': [],
+                'total_count': 0
+            }
+    
+    def get_rag_stats(self) -> Dict:
+        """
+        Get statistics about the RAG database.
+        
+        Returns:
+            Dictionary with RAG database statistics
+        """
+        if not self.enable_rag or not self.rag_store:
+            return {'error': 'RAG functionality not available'}
+        
+        try:
+            return self.rag_store.get_collection_info()
+        except Exception as e:
+            return {'error': f'Failed to get RAG stats: {str(e)}'}
+    
+    def format_rag_results(self, rag_results: Dict, show_content: bool = False) -> str:
+        """
+        Format RAG search results for display.
+        
+        Args:
+            rag_results: Results from search_rag()
+            show_content: Whether to show document content
+            
+        Returns:
+            Formatted string of RAG results
+        """
+        if 'error' in rag_results:
+            return f"Error: {rag_results['error']}"
+        
+        output = []
+        output.append(f"\n{'='*60}")
+        output.append(f"RAG SEARCH RESULTS: {rag_results['query']}")
+        output.append(f"{'='*60}\n")
+        
+        if rag_results['source_filter']:
+            output.append(f"Source Filter: {rag_results['source_filter']}")
+        
+        output.append(f"Found {rag_results['total_count']} relevant documents\n")
+        
+        for i, result in enumerate(rag_results['results'], 1):
+            output.append(f"{i}. {result['title']}")
+            output.append(f"   Source: {result['source'].upper()}")
+            output.append(f"   Type: {result['type'].title()}")
+            output.append(f"   URL: {result['url']}")
+            
+            if show_content:
+                # Show first 200 characters of content
+                content_preview = result['content'][:200].replace('\n', ' ').strip()
+                if len(result['content']) > 200:
+                    content_preview += "..."
+                output.append(f"   Preview: {content_preview}")
+            
+            output.append("")  # Empty line between results
         
         return "\n".join(output)
