@@ -5,7 +5,6 @@ import os
 import hashlib
 from typing import List, Dict, Optional, Any
 from datetime import datetime
-import chromadb
 from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
