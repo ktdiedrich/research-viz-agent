@@ -21,6 +21,10 @@ class ResearchRAGStore:
         self,
         persist_directory: str = "./chroma_db",
         collection_name: str = "medical_cv_research",
+        embeddings_provider: str = "openai",
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
+        # Legacy parameter for backward compatibility
         openai_api_key: Optional[str] = None
     ):
         """
@@ -29,28 +33,65 @@ class ResearchRAGStore:
         Args:
             persist_directory: Directory to persist ChromaDB data
             collection_name: Name of the ChromaDB collection
-            openai_api_key: OpenAI API key for embeddings
+            embeddings_provider: Provider for embeddings ("openai" or "github")
+            api_key: API key for the embeddings provider
+            base_url: Base URL for API endpoints (for GitHub provider)
+            openai_api_key: Legacy parameter for backward compatibility
         """
         self.persist_directory = persist_directory
         self.collection_name = collection_name
+        self.embeddings_provider = embeddings_provider
         
-        # Initialize OpenAI embeddings
-        self.embeddings = OpenAIEmbeddings(
-            openai_api_key=openai_api_key or os.getenv("OPENAI_API_KEY")
+        # Handle legacy parameter
+        if openai_api_key and not api_key and embeddings_provider == "openai":
+            api_key = openai_api_key
+        
+        # Initialize embeddings based on provider
+        from research_viz_agent.utils.llm_factory import LLMFactory
+        
+        self.embeddings = LLMFactory.create_embeddings(
+            provider=embeddings_provider,
+            api_key=api_key,
+            base_url=base_url
         )
         
-        # Initialize ChromaDB client
-        self.client = chromadb.PersistentClient(
-            path=persist_directory,
-            settings=Settings(anonymized_telemetry=False)
-        )
+        # Include embedding provider in collection name to avoid conflicts
+        provider_suffix = f"_{embeddings_provider}" if embeddings_provider != "openai" else ""
+        self.collection_name = f"{collection_name}{provider_suffix}"
         
-        # Initialize Langchain Chroma vector store
-        self.vector_store = Chroma(
-            collection_name=collection_name,
-            embedding_function=self.embeddings,
+        # Initialize ChromaDB with provider-specific settings to avoid conflicts
+        chroma_settings = Settings(
+            anonymized_telemetry=False,
+            allow_reset=True,
+            # Use provider-specific client identifier
             persist_directory=persist_directory
         )
+        
+        # Initialize Langchain Chroma vector store with conflict handling
+        try:
+            self.vector_store = Chroma(
+                collection_name=self.collection_name,
+                embedding_function=self.embeddings,
+                persist_directory=persist_directory
+            )
+            # Initialize ChromaDB client from the vector store
+            self.client = self.vector_store._client
+            
+        except ValueError as e:
+            if "different settings" in str(e):
+                # If there's a settings conflict, use a provider-specific directory
+                provider_persist_dir = f"{persist_directory}_{embeddings_provider}"
+                os.makedirs(provider_persist_dir, exist_ok=True)
+                self.persist_directory = provider_persist_dir
+                
+                self.vector_store = Chroma(
+                    collection_name=self.collection_name,
+                    embedding_function=self.embeddings,
+                    persist_directory=provider_persist_dir
+                )
+                self.client = self.vector_store._client
+            else:
+                raise e
     
     def _create_document_id(self, source: str, identifier: str) -> str:
         """Create a unique document ID."""
@@ -379,6 +420,10 @@ Last Modified: {model.get('last_modified', 'N/A')}
 def create_rag_store(
     persist_directory: str = "./chroma_db",
     collection_name: str = "medical_cv_research",
+    embeddings_provider: str = "openai",
+    api_key: Optional[str] = None,
+    base_url: Optional[str] = None,
+    # Legacy parameter for backward compatibility
     openai_api_key: Optional[str] = None
 ) -> ResearchRAGStore:
     """
@@ -387,7 +432,10 @@ def create_rag_store(
     Args:
         persist_directory: Directory to persist ChromaDB data
         collection_name: Name of the ChromaDB collection
-        openai_api_key: OpenAI API key for embeddings
+        embeddings_provider: Provider for embeddings ("openai" or "github")
+        api_key: API key for the embeddings provider
+        base_url: Base URL for API endpoints (for GitHub provider)
+        openai_api_key: Legacy parameter for backward compatibility
         
     Returns:
         ResearchRAGStore instance
@@ -395,5 +443,8 @@ def create_rag_store(
     return ResearchRAGStore(
         persist_directory=persist_directory,
         collection_name=collection_name,
+        embeddings_provider=embeddings_provider,
+        api_key=api_key,
+        base_url=base_url,
         openai_api_key=openai_api_key
     )

@@ -3,7 +3,7 @@ Factory for creating LLM instances with support for multiple providers.
 """
 import os
 from typing import Optional, Union, Literal
-from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -254,3 +254,54 @@ class LLMFactory:
         
         else:
             return {"error": f"Unknown provider: {provider}"}
+    
+    @staticmethod
+    def create_embeddings(
+        provider: LLMProvider = "openai",
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None
+    ) -> Optional[OpenAIEmbeddings]:
+        """
+        Create an embeddings instance based on the specified provider.
+        
+        Args:
+            provider: Embeddings provider ("openai" or "github")
+            api_key: API key for the provider
+            base_url: Base URL for API endpoints
+            
+        Returns:
+            OpenAIEmbeddings instance or None if provider is "none"
+        """
+        if provider == "none":
+            return None
+        
+        if provider == "openai":
+            api_key = api_key or os.getenv("OPENAI_API_KEY")
+            if not api_key:
+                raise ValueError("OpenAI API key must be provided or set in OPENAI_API_KEY environment variable")
+            
+            return OpenAIEmbeddings(
+                api_key=api_key
+            )
+        
+        elif provider == "github":
+            # GitHub Models uses GitHub token for authentication
+            api_key = api_key or os.getenv("GITHUB_TOKEN")
+            if not api_key:
+                raise ValueError(
+                    "GitHub token must be provided or set in GITHUB_TOKEN environment variable for embeddings. "
+                    "Get your token at: https://github.com/settings/tokens"
+                )
+            
+            # GitHub Models API endpoint for embeddings
+            base_url = base_url or "https://models.inference.ai.azure.com"
+            
+            # Use text-embedding-3-small as default embedding model for GitHub
+            return OpenAIEmbeddings(
+                api_key=api_key,
+                base_url=base_url,
+                model="text-embedding-3-small"
+            )
+        
+        else:
+            raise ValueError(f"Unsupported embeddings provider: {provider}")

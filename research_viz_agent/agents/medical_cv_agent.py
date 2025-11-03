@@ -110,19 +110,15 @@ class MedicalCVResearchAgent:
         
         if self.enable_rag:
             try:
-                # Use provider-specific RAG directories to avoid conflicts
+                # Use provider-specific RAG directories and embeddings to avoid conflicts
                 if llm_provider == "openai":
                     provider_rag_dir = rag_persist_dir if rag_persist_dir != "./chroma_db" else "./chroma_db_openai"
+                    embeddings_provider = "openai"
                     embeddings_api_key = self.api_key
                 elif llm_provider == "github":
                     provider_rag_dir = rag_persist_dir if rag_persist_dir != "./chroma_db" else "./chroma_db_github"
-                    # For GitHub provider, try to use OpenAI key for embeddings if available
-                    embeddings_api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
-                    if not embeddings_api_key:
-                        print("⚠ OpenAI API key required for RAG embeddings with GitHub provider")
-                        print("  Set OPENAI_API_KEY environment variable or use --no-rag")
-                        self.enable_rag = False
-                        provider_rag_dir = None
+                    embeddings_provider = "github"
+                    embeddings_api_key = self.api_key  # Use GitHub token for embeddings
                 
                 if self.enable_rag and provider_rag_dir:
                     # Create provider-specific directory
@@ -130,9 +126,10 @@ class MedicalCVResearchAgent:
                     
                     self.rag_store = create_rag_store(
                         persist_directory=provider_rag_dir,
-                        openai_api_key=embeddings_api_key
+                        embeddings_provider=embeddings_provider,
+                        api_key=embeddings_api_key
                     )
-                    print(f"✓ RAG store initialized at {provider_rag_dir}")
+                    print(f"✓ RAG store initialized at {provider_rag_dir} with {embeddings_provider} embeddings")
             except Exception as e:
                 error_msg = str(e)
                 if "different settings" in error_msg or "already exists" in error_msg:
