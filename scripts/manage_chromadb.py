@@ -5,7 +5,6 @@ Script to manage ChromaDB instances for different LLM providers.
 import os
 import shutil
 import argparse
-from pathlib import Path
 import time
 from research_viz_agent.utils.llm_factory import LLMFactory
 
