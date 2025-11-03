@@ -3,11 +3,12 @@ RAG (Retrieval-Augmented Generation) store using ChromaDB for research results.
 """
 import os
 import hashlib
+import uuid
 from typing import List, Dict, Optional, Any
 from datetime import datetime
-from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
+from research_viz_agent.utils.llm_factory import LLMFactory
 
 
 class ResearchRAGStore:
@@ -45,8 +46,6 @@ class ResearchRAGStore:
             api_key = openai_api_key
         
         # Initialize embeddings based on provider
-        from research_viz_agent.utils.llm_factory import LLMFactory
-        
         self.embeddings = LLMFactory.create_embeddings(
             provider=embeddings_provider,
             api_key=api_key,
@@ -83,9 +82,15 @@ class ResearchRAGStore:
             else:
                 raise e
     
-    def _create_document_id(self, source: str, identifier: str) -> str:
-        """Create a unique document ID."""
-        return hashlib.md5(f"{source}:{identifier}".encode()).hexdigest()
+    def _create_document_id(self, source: str, identifier: str, fallback_data: str = "") -> str:
+        """Create a unique document ID with fallback for missing identifiers."""
+        if not identifier:
+            # Use UUID for guaranteed uniqueness when identifier is missing
+            identifier = f"missing_id_{uuid.uuid4()}"
+        
+        # Include fallback data (like title hash) for additional uniqueness
+        unique_string = f"{source}:{identifier}:{fallback_data}" if fallback_data else f"{source}:{identifier}"
+        return hashlib.md5(unique_string.encode()).hexdigest()
     
     def add_arxiv_results(self, results: List[Dict], query: str) -> None:
         """
@@ -96,9 +101,19 @@ class ResearchRAGStore:
             query: Original search query
         """
         documents = []
+        seen_ids = set()
         
         for paper in results:
-            doc_id = self._create_document_id("arxiv", paper.get("entry_id", ""))
+            doc_id = self._create_document_id(
+                "arxiv", 
+                paper.get("entry_id", ""), 
+                paper.get("title", "")[:100]  # Use title as fallback data
+            )
+            
+            # Skip duplicates
+            if doc_id in seen_ids:
+                continue
+            seen_ids.add(doc_id)
             
             # Create document content
             content = f"""
@@ -137,7 +152,19 @@ Updated: {paper.get('updated', 'N/A')}
             ))
         
         if documents:
-            self.vector_store.add_documents(documents)
+            # Handle duplicates gracefully for ArXiv
+            try:
+                self.vector_store.add_documents(documents)
+            except Exception as e:
+                if "unique" in str(e).lower() or "duplicate" in str(e).lower():
+                    # Add documents one by one, skipping duplicates
+                    for doc in documents:
+                        try:
+                            self.vector_store.add_documents([doc])
+                        except Exception:
+                            pass  # Skip duplicates silently
+                else:
+                    raise e
     
     def add_pubmed_results(self, results: List[Dict], query: str) -> None:
         """
@@ -148,9 +175,19 @@ Updated: {paper.get('updated', 'N/A')}
             query: Original search query
         """
         documents = []
+        seen_ids = set()
         
         for paper in results:
-            doc_id = self._create_document_id("pubmed", paper.get("pmid", ""))
+            doc_id = self._create_document_id(
+                "pubmed", 
+                paper.get("pmid", ""), 
+                paper.get("title", "")[:100]  # Use title as fallback data
+            )
+            
+            # Skip duplicates
+            if doc_id in seen_ids:
+                continue
+            seen_ids.add(doc_id)
             
             # Create document content
             content = f"""
@@ -191,7 +228,19 @@ Published: {paper.get('publication_date', 'N/A')}
             ))
         
         if documents:
-            self.vector_store.add_documents(documents)
+            # Handle duplicates gracefully for PubMed
+            try:
+                self.vector_store.add_documents(documents)
+            except Exception as e:
+                if "unique" in str(e).lower() or "duplicate" in str(e).lower():
+                    # Add documents one by one, skipping duplicates
+                    for doc in documents:
+                        try:
+                            self.vector_store.add_documents([doc])
+                        except Exception:
+                            pass  # Skip duplicates silently
+                else:
+                    raise e
     
     def add_huggingface_results(self, results: List[Dict], query: str) -> None:
         """
@@ -202,9 +251,19 @@ Published: {paper.get('publication_date', 'N/A')}
             query: Original search query
         """
         documents = []
+        seen_ids = set()
         
         for model in results:
-            doc_id = self._create_document_id("huggingface", model.get("model_id", ""))
+            doc_id = self._create_document_id(
+                "huggingface", 
+                model.get("model_id", ""), 
+                f"{model.get('author', '')}/{model.get('pipeline_tag', '')}"[:100]  # Use author/task as fallback
+            )
+            
+            # Skip duplicates
+            if doc_id in seen_ids:
+                continue
+            seen_ids.add(doc_id)
             
             # Create document content
             content = f"""
@@ -249,7 +308,19 @@ Last Modified: {model.get('last_modified', 'N/A')}
             ))
         
         if documents:
-            self.vector_store.add_documents(documents)
+            # Handle duplicates gracefully for HuggingFace
+            try:
+                self.vector_store.add_documents(documents)
+            except Exception as e:
+                if "unique" in str(e).lower() or "duplicate" in str(e).lower():
+                    # Add documents one by one, skipping duplicates
+                    for doc in documents:
+                        try:
+                            self.vector_store.add_documents([doc])
+                        except Exception:
+                            pass  # Skip duplicates silently
+                else:
+                    raise e
     
     def store_research_results(
         self, 

@@ -389,7 +389,7 @@ The ChromaDB collection stores:
 - **Papers**: ArXiv and PubMed research papers with abstracts, authors, and metadata
 - **Models**: HuggingFace models with descriptions, tags, and usage statistics
 - **Metadata**: Source information, URLs, publication dates, and search queries
-- **Embeddings**: OpenAI embeddings for semantic similarity search
+- **Embeddings**: Provider-specific embeddings (GitHub Models or OpenAI) for semantic similarity search
 
 ## Example Output
 
