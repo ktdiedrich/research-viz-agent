@@ -5,6 +5,7 @@ Command-line interface for the Medical CV Research Agent.
 import argparse
 import sys
 from research_viz_agent.agents.medical_cv_agent import MedicalCVResearchAgent
+from research_viz_agent.utils.llm_factory import LLMFactory, LLMProvider
 
 
 def main():
@@ -14,12 +15,16 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Regular research
+  # Regular research with different LLM providers
   %(prog)s "lung cancer detection"
-  %(prog)s "skin lesion classification" --email your@email.com
-  %(prog)s "brain tumor segmentation" --output results.txt
+  %(prog)s "skin lesion classification" --llm-provider github --model gpt-4o
+  %(prog)s "brain tumor segmentation" --llm-provider openai --model gpt-4o-mini
   %(prog)s "lung cancer detection" --display-results 10
   %(prog)s "radiology AI" --max-results 50 --display-results 15
+  
+  # GitHub Models (free with GitHub Pro)
+  %(prog)s "medical imaging AI" --llm-provider github --model Llama-3.2-11B-Vision-Instruct
+  %(prog)s "chest x-ray classification" --llm-provider github --model Phi-3.5-mini-instruct
   
   # RAG functionality
   %(prog)s --rag-search "deep learning medical imaging"
@@ -27,15 +32,18 @@ Examples:
   %(prog)s --rag-stats
   %(prog)s "lung cancer" --no-rag
   
-  # Cost-saving options
+  # Cost-saving and model options
   %(prog)s "lung cancer detection" --no-summary
-  %(prog)s "skin lesion" --no-summary --no-rag
+  %(prog)s "skin lesion" --llm-provider none
+  %(prog)s --list-models openai
+  %(prog)s --list-models github
         """
     )
     
     parser.add_argument(
         "query",
         type=str,
+        nargs="?",
         help="Research query for medical CV AI models"
     )
     
@@ -47,10 +55,17 @@ Examples:
     )
     
     parser.add_argument(
+        "--llm-provider",
+        type=str,
+        choices=["openai", "github", "none"],
+        default="openai",
+        help="LLM provider to use (default: openai)"
+    )
+    
+    parser.add_argument(
         "--model",
         type=str,
-        default="gpt-3.5-turbo",
-        help="OpenAI model to use (default: gpt-3.5-turbo)"
+        help="Model name to use (provider-specific, uses defaults if not specified)"
     )
     
     parser.add_argument(
@@ -107,6 +122,12 @@ Examples:
     )
     
     parser.add_argument(
+        "--rag-dir",
+        type=str,
+        help="Custom RAG storage directory (default: provider-specific directories)"
+    )
+    
+    parser.add_argument(
         "--rag-stats",
         action="store_true",
         help="Show RAG database statistics and exit"
@@ -115,35 +136,94 @@ Examples:
     parser.add_argument(
         "--no-summary",
         action="store_true",
-        help="Skip AI summarization to avoid OpenAI API costs (collect results only)"
+        help="Skip AI summarization to avoid API costs (same as --llm-provider none)"
+    )
+    
+    parser.add_argument(
+        "--list-models",
+        type=str,
+        choices=["openai", "github"],
+        help="List available models for a provider and exit"
+    )
+    
+    parser.add_argument(
+        "--provider-info",
+        type=str,
+        choices=["openai", "github"],
+        help="Show provider information and setup instructions"
     )
     
     args = parser.parse_args()
     
     try:
+        # Handle informational commands first
+        if args.list_models:
+            models = LLMFactory.get_available_models(args.list_models)
+            print(f"\n{args.list_models.upper()} Available Models:")
+            print("=" * 50)
+            for model_name, info in models.items():
+                print(f"\n• {model_name}")
+                print(f"  Description: {info['description']}")
+                if 'provider' in info:
+                    print(f"  Provider: {info['provider']}")
+                if 'context_window' in info:
+                    print(f"  Context Window: {info['context_window']:,} tokens")
+                if 'cost' in info:
+                    print(f"  Cost: {info['cost']}")
+                elif 'cost_per_1k_tokens' in info:
+                    cost = info['cost_per_1k_tokens']
+                    print(f"  Cost: ${cost['input']:.5f} input / ${cost['output']:.5f} output per 1K tokens")
+            print()
+            return
+        
+        if args.provider_info:
+            info = LLMFactory.get_provider_info(args.provider_info)
+            print(f"\n{info['name']} Provider Information:")
+            print("=" * 50)
+            print(f"Description: {info['description']}")
+            print(f"Cost: {info['cost']}")
+            if info['setup_url']:
+                print(f"Setup: {info['setup_url']}")
+            if info['env_var']:
+                print(f"Environment Variable: {info['env_var']}")
+            if 'requirements' in info:
+                print(f"Requirements: {info['requirements']}")
+            print(f"Available Models: {', '.join(info['models'])}")
+            
+            # Check configuration
+            is_valid, message = LLMFactory.validate_provider_config(args.provider_info)
+            print(f"\nConfiguration Status: {'✓' if is_valid else '✗'} {message}")
+            print()
+            return
+        
+        # Require query for research operations
+        if not args.query and not args.rag_search and not args.rag_stats:
+            parser.error("Research query is required (or use --rag-search, --rag-stats, --list-models, --provider-info)")
+        
+        # Determine LLM provider
+        llm_provider = args.llm_provider
+        if args.no_summary:
+            llm_provider = "none"
+        
+        # Validate provider configuration
+        is_valid, message = LLMFactory.validate_provider_config(llm_provider)
+        if not is_valid and llm_provider != "none":
+            print(f"⚠ {message}")
+            print("  Falling back to no-summary mode...")
+            llm_provider = "none"
+        
         # Initialize agent
         print("Initializing Medical CV Research Agent...")
         
-        # Skip OpenAI setup if only collecting results
-        if args.no_summary:
-            print("⚠ Running without AI summarization (--no-summary flag)")
-            # Use a dummy model name, won't be used
-            agent = MedicalCVResearchAgent(
-                pubmed_email=args.email,
-                model_name="gpt-3.5-turbo",  # Won't be used
-                temperature=args.temperature,
-                max_results=args.max_results,
-                enable_rag=not args.no_rag,
-                skip_openai_init=True
-            )
-        else:
-            agent = MedicalCVResearchAgent(
-                pubmed_email=args.email,
-                model_name=args.model,
-                temperature=args.temperature,
-                max_results=args.max_results,
-                enable_rag=not args.no_rag
-            )
+        agent = MedicalCVResearchAgent(
+            llm_provider=llm_provider,
+            pubmed_email=args.email,
+            model_name=args.model,
+            temperature=args.temperature,
+            max_results=args.max_results,
+            enable_rag=not args.no_rag,
+            rag_persist_dir=args.rag_dir or "./chroma_db"
+        )
         
         # Handle RAG statistics request
         if args.rag_stats:

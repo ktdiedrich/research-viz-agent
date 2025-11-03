@@ -11,6 +11,7 @@ from research_viz_agent.mcp_tools.pubmed_tool import create_pubmed_tool
 from research_viz_agent.mcp_tools.huggingface_tool import create_huggingface_tool
 from research_viz_agent.agents.research_workflow import ResearchWorkflow
 from research_viz_agent.utils.rag_store import create_rag_store
+from research_viz_agent.utils.llm_factory import LLMFactory, LLMProvider
 
 
 class MedicalCVResearchAgent:
@@ -21,50 +22,77 @@ class MedicalCVResearchAgent:
     
     def __init__(
         self,
+        llm_provider: LLMProvider = "openai",
         openai_api_key: Optional[str] = None,
+        github_token: Optional[str] = None,
         huggingface_token: Optional[str] = None,
         pubmed_email: str = "research@example.com",
-        model_name: str = "gpt-3.5-turbo",
+        model_name: Optional[str] = None,
         temperature: float = 0.7,
         max_results: int = 20,
         enable_rag: bool = True,
         rag_persist_dir: str = "./chroma_db",
-        skip_openai_init: bool = False
+        skip_llm_init: bool = False
     ):
         """
         Initialize the Medical CV Research Agent.
         
         Args:
+            llm_provider: LLM provider ("openai", "github", or "none")
             openai_api_key: OpenAI API key (or set OPENAI_API_KEY env var)
+            github_token: GitHub token (or set GITHUB_TOKEN env var) 
             huggingface_token: HuggingFace token (or set HUGGINGFACE_TOKEN env var)
             pubmed_email: Email for PubMed API
-            model_name: OpenAI model to use
+            model_name: Model name to use (provider-specific defaults if not specified)
             temperature: Temperature for LLM responses
             max_results: Maximum number of results to fetch from each source
             enable_rag: Whether to enable RAG storage of results
             rag_persist_dir: Directory to persist ChromaDB data
+            skip_llm_init: Legacy parameter for backward compatibility (sets llm_provider to "none")
         """
         # Load environment variables
         load_dotenv()
         
-        # Set up API keys
-        self.skip_openai_init = skip_openai_init
+        # Handle legacy skip_llm_init parameter
+        if skip_llm_init:
+            llm_provider = "none"
         
-        if not skip_openai_init:
-            self.openai_api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
-            if not self.openai_api_key:
-                raise ValueError("OpenAI API key must be provided or set in OPENAI_API_KEY environment variable")
-            
-            # Initialize LLM
-            self.llm = ChatOpenAI(
-                api_key=self.openai_api_key,
-                model_name=model_name,
-                temperature=temperature
-            )
-        else:
-            self.openai_api_key = None
+        self.llm_provider = llm_provider
+        self.skip_llm_init = (llm_provider == "none")
+        
+        # Initialize LLM based on provider
+        if llm_provider == "none":
             self.llm = None
-            print("⚠ Skipping OpenAI initialization - AI summarization disabled")
+            self.api_key = None
+            print("⚠ Skipping LLM initialization - AI summarization disabled")
+        else:
+            try:
+                # Set up API key based on provider
+                if llm_provider == "openai":
+                    api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
+                    self.api_key = api_key
+                elif llm_provider == "github":
+                    api_key = github_token or os.getenv("GITHUB_TOKEN")
+                    self.api_key = api_key
+                else:
+                    raise ValueError(f"Unsupported LLM provider: {llm_provider}")
+                
+                # Create LLM instance
+                self.llm = LLMFactory.create_llm(
+                    provider=llm_provider,
+                    model_name=model_name,
+                    temperature=temperature,
+                    api_key=api_key
+                )
+                
+                print(f"✓ LLM initialized: {llm_provider} ({model_name or 'default model'})")
+                
+            except Exception as e:
+                print(f"⚠ LLM initialization failed: {e}")
+                print("  Continuing without AI summarization...")
+                self.llm = None
+                self.api_key = None
+                self.skip_llm_init = True
         
         self.huggingface_token = huggingface_token or os.getenv("HUGGINGFACE_TOKEN")
         
@@ -77,22 +105,48 @@ class MedicalCVResearchAgent:
         self.max_results = max_results
         
         # Initialize RAG store if enabled (requires OpenAI for embeddings)
-        self.enable_rag = enable_rag and not skip_openai_init
+        self.enable_rag = enable_rag and not self.skip_llm_init and llm_provider in ["openai", "github"]
         self.rag_store = None
         
         if self.enable_rag:
             try:
-                self.rag_store = create_rag_store(
-                    persist_directory=rag_persist_dir,
-                    openai_api_key=self.openai_api_key
-                )
-                print(f"✓ RAG store initialized at {rag_persist_dir}")
+                # Use provider-specific RAG directories to avoid conflicts
+                if llm_provider == "openai":
+                    provider_rag_dir = rag_persist_dir if rag_persist_dir != "./chroma_db" else "./chroma_db_openai"
+                    embeddings_api_key = self.api_key
+                elif llm_provider == "github":
+                    provider_rag_dir = rag_persist_dir if rag_persist_dir != "./chroma_db" else "./chroma_db_github"
+                    # For GitHub provider, try to use OpenAI key for embeddings if available
+                    embeddings_api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
+                    if not embeddings_api_key:
+                        print("⚠ OpenAI API key required for RAG embeddings with GitHub provider")
+                        print("  Set OPENAI_API_KEY environment variable or use --no-rag")
+                        self.enable_rag = False
+                        provider_rag_dir = None
+                
+                if self.enable_rag and provider_rag_dir:
+                    # Create provider-specific directory
+                    os.makedirs(provider_rag_dir, exist_ok=True)
+                    
+                    self.rag_store = create_rag_store(
+                        persist_directory=provider_rag_dir,
+                        openai_api_key=embeddings_api_key
+                    )
+                    print(f"✓ RAG store initialized at {provider_rag_dir}")
             except Exception as e:
-                print(f"⚠ RAG store initialization failed: {e}")
+                error_msg = str(e)
+                if "different settings" in error_msg or "already exists" in error_msg:
+                    print(f"⚠ RAG store conflict detected: {e}")
+                    print(f"  Try using --no-rag or run: python scripts/manage_chromadb.py --clear ./chroma_db")
+                    print(f"  Or use provider-specific directory with different --rag-persist-dir")
+                else:
+                    print(f"⚠ RAG store initialization failed: {e}")
                 print("  Continuing without RAG functionality...")
                 self.enable_rag = False
-        elif skip_openai_init:
-            print("⚠ RAG functionality disabled (requires OpenAI API for embeddings)")
+        elif self.skip_llm_init:
+            print("⚠ RAG functionality disabled (requires LLM provider for embeddings)")
+        elif llm_provider not in ["openai", "github"]:
+            print(f"⚠ RAG functionality not supported with {llm_provider} provider")
         
         # Initialize workflow
         self.workflow = ResearchWorkflow(

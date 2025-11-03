@@ -4,6 +4,7 @@ LangGraph workflow for medical computer vision research agent.
 from typing import TypedDict, Annotated, List, Dict, Optional
 from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI
+from typing import Union
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.messages import HumanMessage, SystemMessage
 import operator
