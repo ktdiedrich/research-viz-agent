@@ -6,7 +6,6 @@ import os
 import shutil
 import argparse
 import time
-from research_viz_agent.utils.llm_factory import LLMFactory
 
 def backup_chromadb(source_dir: str, backup_dir: str):
     """Backup ChromaDB directory."""
