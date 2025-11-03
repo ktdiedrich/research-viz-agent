@@ -3,6 +3,7 @@ RAG (Retrieval-Augmented Generation) store using ChromaDB for research results.
 """
 import os
 import hashlib
+import uuid
 from typing import List, Dict, Optional, Any
 from datetime import datetime
 from langchain_chroma import Chroma
@@ -85,10 +86,8 @@ class ResearchRAGStore:
     def _create_document_id(self, source: str, identifier: str, fallback_data: str = "") -> str:
         """Create a unique document ID with fallback for missing identifiers."""
         if not identifier:
-            # Use a timestamp + random component for missing identifiers
-            import time
-            import random
-            identifier = f"missing_id_{int(time.time() * 1000000)}_{random.randint(1000, 9999)}"
+            # Use UUID for guaranteed uniqueness when identifier is missing
+            identifier = f"missing_id_{uuid.uuid4()}"
         
         # Include fallback data (like title hash) for additional uniqueness
         unique_string = f"{source}:{identifier}:{fallback_data}" if fallback_data else f"{source}:{identifier}"
