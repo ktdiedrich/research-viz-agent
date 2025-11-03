@@ -110,26 +110,37 @@ class MedicalCVResearchAgent:
         
         if self.enable_rag:
             try:
-                # For RAG embeddings, we need an OpenAI-compatible API
-                # Use OpenAI key for embeddings even with GitHub provider
-                embeddings_api_key = None
+                # Use provider-specific RAG directories to avoid conflicts
                 if llm_provider == "openai":
+                    provider_rag_dir = rag_persist_dir if rag_persist_dir != "./chroma_db" else "./chroma_db_openai"
                     embeddings_api_key = self.api_key
                 elif llm_provider == "github":
+                    provider_rag_dir = rag_persist_dir if rag_persist_dir != "./chroma_db" else "./chroma_db_github"
                     # For GitHub provider, try to use OpenAI key for embeddings if available
                     embeddings_api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
                     if not embeddings_api_key:
                         print("⚠ OpenAI API key required for RAG embeddings with GitHub provider")
+                        print("  Set OPENAI_API_KEY environment variable or use --no-rag")
                         self.enable_rag = False
+                        provider_rag_dir = None
                 
-                if self.enable_rag:
+                if self.enable_rag and provider_rag_dir:
+                    # Create provider-specific directory
+                    os.makedirs(provider_rag_dir, exist_ok=True)
+                    
                     self.rag_store = create_rag_store(
-                        persist_directory=rag_persist_dir,
+                        persist_directory=provider_rag_dir,
                         openai_api_key=embeddings_api_key
                     )
-                    print(f"✓ RAG store initialized at {rag_persist_dir}")
+                    print(f"✓ RAG store initialized at {provider_rag_dir}")
             except Exception as e:
-                print(f"⚠ RAG store initialization failed: {e}")
+                error_msg = str(e)
+                if "different settings" in error_msg or "already exists" in error_msg:
+                    print(f"⚠ RAG store conflict detected: {e}")
+                    print(f"  Try using --no-rag or run: python scripts/manage_chromadb.py --clear ./chroma_db")
+                    print(f"  Or use provider-specific directory with different --rag-persist-dir")
+                else:
+                    print(f"⚠ RAG store initialization failed: {e}")
                 print("  Continuing without RAG functionality...")
                 self.enable_rag = False
         elif self.skip_llm_init:

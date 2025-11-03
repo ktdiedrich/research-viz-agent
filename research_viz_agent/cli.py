@@ -122,6 +122,12 @@ Examples:
     )
     
     parser.add_argument(
+        "--rag-dir",
+        type=str,
+        help="Custom RAG storage directory (default: provider-specific directories)"
+    )
+    
+    parser.add_argument(
         "--rag-stats",
         action="store_true",
         help="Show RAG database statistics and exit"
@@ -215,7 +221,8 @@ Examples:
             model_name=args.model,
             temperature=args.temperature,
             max_results=args.max_results,
-            enable_rag=not args.no_rag
+            enable_rag=not args.no_rag,
+            rag_persist_dir=args.rag_dir or "./chroma_db"
         )
         
         # Handle RAG statistics request

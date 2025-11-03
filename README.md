@@ -283,8 +283,20 @@ uv pip install -e .
 
 ### Environment Variables
 
-- `OPENAI_API_KEY`: Required for AI summarization - Your OpenAI API key
-- `HUGGINGFACE_TOKEN`: Optional - HuggingFace API token for authenticated requests
+**LLM Providers (choose one):**
+- `OPENAI_API_KEY`: For OpenAI models (pay-per-use)
+- `GITHUB_TOKEN`: For GitHub Models (free with GitHub Pro subscription)
+
+**Optional:**
+- `HUGGINGFACE_TOKEN`: HuggingFace API token for authenticated requests
+
+### LLM Provider Comparison
+
+| Provider | Cost | Setup | Models Available | Notes |
+|----------|------|-------|------------------|-------|
+| **OpenAI** | Pay-per-use | [Get API Key](https://platform.openai.com/api-keys) | GPT-3.5, GPT-4, GPT-4o | Official OpenAI API |
+| **GitHub Models** | **FREE** | [Get Token](https://github.com/settings/tokens) | GPT-4o, Llama, Phi, Mistral | Requires GitHub Pro subscription |
+| **None** | **FREE** | No setup | N/A | Collect results without AI summary |
 
 ### Handling OpenAI API Issues
 
