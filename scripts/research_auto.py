@@ -76,8 +76,11 @@ def main():
         if args.output:
             cmd.extend(["--output", args.output])
         
-        subprocess.run(cmd)
-    else:
+        try:
+            result = subprocess.run(cmd, check=True)
+            print(f"\n✓ Research completed successfully!")
+        except subprocess.CalledProcessError as e:
+            print(f"❌ Research failed with error: {e}")
         # Use auto RAG resolution
         kwargs = {
             "max_results": args.max_results if args.max_results != 20 else None,
