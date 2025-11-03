@@ -6,6 +6,7 @@ import os
 import shutil
 import argparse
 from pathlib import Path
+import time
 from research_viz_agent.utils.llm_factory import LLMFactory
 
 def backup_chromadb(source_dir: str, backup_dir: str):
@@ -121,7 +122,7 @@ def main():
                 clear_chromadb(directory)
     
     elif args.backup:
-        backup_dir = f"{args.backup}_backup_{int(os.time.time())}"
+        backup_dir = f"{args.backup}_backup_{int(time.time())}"
         backup_chromadb(args.backup, backup_dir)
     
     elif args.restore:
