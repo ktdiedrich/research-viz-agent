@@ -2,7 +2,6 @@
 """
 Convenience script to run research with automatic ChromaDB conflict resolution.
 """
-import sys
 import subprocess
 import argparse
 from datetime import datetime
