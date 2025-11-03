@@ -25,7 +25,7 @@ class AgentState(TypedDict):
 class ResearchWorkflow:
     """LangGraph workflow for coordinating research across multiple sources."""
     
-    def __init__(self, llm: Optional[Union[ChatOpenAI]], arxiv_tool, pubmed_tool, huggingface_tool, max_results: int = 20):
+    def __init__(self, llm: Optional[ChatOpenAI], arxiv_tool, pubmed_tool, huggingface_tool, max_results: int = 20):
         """
         Initialize the research workflow.
         
