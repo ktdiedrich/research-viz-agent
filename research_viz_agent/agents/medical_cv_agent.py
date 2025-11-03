@@ -22,7 +22,7 @@ class MedicalCVResearchAgent:
     
     def __init__(
         self,
-        llm_provider: LLMProvider = "openai",
+        llm_provider: LLMProvider = "github",
         openai_api_key: Optional[str] = None,
         github_token: Optional[str] = None,
         huggingface_token: Optional[str] = None,

@@ -58,8 +58,8 @@ Examples:
         "--llm-provider",
         type=str,
         choices=["openai", "github", "none"],
-        default="openai",
-        help="LLM provider to use (default: openai)"
+        default="github",
+        help="LLM provider to use (default: github)"
     )
     
     parser.add_argument(
