@@ -4,6 +4,7 @@ LangGraph workflow for medical computer vision research agent.
 from typing import TypedDict, Annotated, List, Dict, Optional
 from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI
+from typing import Union
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.messages import HumanMessage, SystemMessage
 import operator
@@ -24,7 +25,7 @@ class AgentState(TypedDict):
 class ResearchWorkflow:
     """LangGraph workflow for coordinating research across multiple sources."""
     
-    def __init__(self, llm: Optional[ChatOpenAI], arxiv_tool, pubmed_tool, huggingface_tool, max_results: int = 20):
+    def __init__(self, llm: Optional[Union[ChatOpenAI]], arxiv_tool, pubmed_tool, huggingface_tool, max_results: int = 20):
         """
         Initialize the research workflow.
         
