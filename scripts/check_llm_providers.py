@@ -2,7 +2,6 @@
 """
 Script to validate LLM provider configurations and test connectivity.
 """
-import os
 import sys
 from dotenv import load_dotenv
 from research_viz_agent.utils.llm_factory import LLMFactory, LLMProvider
