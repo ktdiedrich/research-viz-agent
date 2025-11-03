@@ -6,7 +6,6 @@ import hashlib
 from typing import List, Dict, Optional, Any
 from datetime import datetime
 import chromadb
-from chromadb.config import Settings
 from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
@@ -58,14 +57,6 @@ class ResearchRAGStore:
         # Include embedding provider in collection name to avoid conflicts
         provider_suffix = f"_{embeddings_provider}" if embeddings_provider != "openai" else ""
         self.collection_name = f"{collection_name}{provider_suffix}"
-        
-        # Initialize ChromaDB with provider-specific settings to avoid conflicts
-        chroma_settings = Settings(
-            anonymized_telemetry=False,
-            allow_reset=True,
-            # Use provider-specific client identifier
-            persist_directory=persist_directory
-        )
         
         # Initialize Langchain Chroma vector store with conflict handling
         try:
