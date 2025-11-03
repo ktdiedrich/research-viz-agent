@@ -163,7 +163,7 @@ Updated: {paper.get('updated', 'N/A')}
                     for doc in documents:
                         try:
                             self.vector_store.add_documents([doc])
-                        except:
+                        except Exception:
                             pass  # Skip duplicates silently
                 else:
                     raise e
