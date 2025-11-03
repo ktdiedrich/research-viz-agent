@@ -8,6 +8,7 @@ from typing import List, Dict, Optional, Any
 from datetime import datetime
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
+from research_viz_agent.utils.llm_factory import LLMFactory
 
 
 class ResearchRAGStore:
@@ -45,8 +46,6 @@ class ResearchRAGStore:
             api_key = openai_api_key
         
         # Initialize embeddings based on provider
-        from research_viz_agent.utils.llm_factory import LLMFactory
-        
         self.embeddings = LLMFactory.create_embeddings(
             provider=embeddings_provider,
             api_key=api_key,
