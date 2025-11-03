@@ -10,16 +10,19 @@ This agent uses **LangChain**, **LangGraph**, and **MCP (Model Context Protocol)
 - **PubMed** - Biomedical literature database
 - **HuggingFace** - Pre-trained AI model collections
 
+**✨ NEW**: Now supports **GitHub Models** as the default provider, offering **free AI models** (GPT-4o, Llama, Phi, Mistral) for users with GitHub Pro subscriptions!
+
 ## Features
 
 - 🔍 **Multi-Source Search**: Automatically searches arXiv, PubMed, and HuggingFace
-- 🤖 **Multiple LLM Providers**: Choose between OpenAI or GitHub Models (free with GitHub Pro!)
+- 🆓 **GitHub Models Integration**: Free AI models (GPT-4o, Llama, Phi, Mistral) with GitHub Pro subscription
+- 🤖 **Multiple LLM Providers**: Choose between GitHub Models (default), OpenAI, or no AI
 - 📊 **Structured Workflow**: LangGraph orchestrates the research workflow
 - 🔌 **MCP Tools**: Modular tools for each research source
 - 💻 **CLI & Python API**: Use via command line or integrate into your code
-- 📚 **RAG Storage**: ChromaDB-powered vector database for storing and searching research results
-- 🔎 **Semantic Search**: Find relevant research across all sources using similarity search
-- 💰 **Cost-Effective**: Use free GitHub Models or skip AI summarization entirely
+- 📚 **RAG Storage**: Provider-specific ChromaDB vector databases with matching embeddings
+- 🔎 **Semantic Search**: Find relevant research using GitHub or OpenAI embeddings
+- 💰 **Cost-Effective**: Completely free with GitHub Pro, or pay-per-use with OpenAI
 
 ## Installation
 
@@ -27,10 +30,10 @@ This agent uses **LangChain**, **LangGraph**, and **MCP (Model Context Protocol)
 
 - Python 3.12 or higher
 - UV (install via `curl -LsSf https://astral.sh/uv/install.sh | sh` or see [UV installation](https://docs.astral.sh/uv/getting-started/installation/))
-- **One of the following** (optional for results collection without AI summary):
-  - OpenAI API key (pay-per-use)
-  - GitHub Pro account + GitHub token (free AI models!)
-  - Or run without AI summarization (free)
+- **Choose your AI provider** (optional - can run without AI for data collection only):
+  - **🆓 GitHub Pro + GitHub token** (recommended - free AI models!)
+  - OpenAI API key (pay-per-use alternative)
+  - Or run without AI summarization (free data collection)
 
 ### Setup
 
@@ -52,24 +55,25 @@ uv sync --extra dev
 
 3. Configure API keys (choose one option):
 
-**Option A: OpenAI (Pay-per-use)**
+**Option A: GitHub Models (Recommended - Free with GitHub Pro) 🆓**
+```bash
+# Set GitHub token for free AI models
+export GITHUB_TOKEN=your_github_token_here
+# Get token at: https://github.com/settings/tokens
+# Requires GitHub Pro subscription for free access to GPT-4o, Llama, Phi, Mistral models
+```
+
+**Option B: OpenAI (Pay-per-use)**
 ```bash
 # Set OpenAI API key
 export OPENAI_API_KEY=your_openai_key_here
 # Get key at: https://platform.openai.com/api-keys
 ```
 
-**Option B: GitHub Models (Free with GitHub Pro)**
+**Option C: No AI Summarization (Free data collection only)**
 ```bash
-# Set GitHub token
-export GITHUB_TOKEN=your_github_token_here
-# Get token at: https://github.com/settings/tokens
-# Requires GitHub Pro subscription for free model access
-```
-
-**Option C: No AI Summarization (Free)**
-```bash
-# No setup needed - use --llm-provider none or --no-summary
+# No setup needed - use --llm-provider none
+# Collects research data without AI summarization
 ```
 
 4. Activate the UV virtual environment:
@@ -89,30 +93,37 @@ source .venv/bin/activate  # Linux/macOS
 #### Basic Usage with Different LLM Providers
 
 ```bash
-# OpenAI (pay-per-use)
+# GitHub Models (default - free with GitHub Pro) 🆓
+uv run python -m research_viz_agent.cli "lung cancer detection"
+# Uses GitHub's free GPT-4o model by default
+
+# Specify different GitHub model
+uv run python -m research_viz_agent.cli "lung cancer detection" --model Llama-3.2-11B-Vision-Instruct
+
+# OpenAI (pay-per-use alternative)
 uv run python -m research_viz_agent.cli "lung cancer detection" --llm-provider openai --model gpt-3.5-turbo
 
-# GitHub Models (free with GitHub Pro)
-uv run python -m research_viz_agent.cli "lung cancer detection" --llm-provider github --model gpt-4o
-
-# No AI summarization (free)
+# No AI summarization (free data collection)
 uv run python -m research_viz_agent.cli "lung cancer detection" --llm-provider none
 ```
 
-#### GitHub Models Examples (Free with GitHub Pro!)
+#### GitHub Models Examples (Default Provider - Free with GitHub Pro!) 🆓
 
 ```bash
-# Use free GPT-4o via GitHub Models
-uv run python -m research_viz_agent.cli "skin lesion classification" --llm-provider github --model gpt-4o
+# Use free GPT-4o (default model)
+uv run python -m research_viz_agent.cli "skin lesion classification"
 
-# Use Meta Llama models
-uv run python -m research_viz_agent.cli "brain tumor MRI" --llm-provider github --model Llama-3.2-11B-Vision-Instruct
+# Use free GPT-4o-mini (faster)
+uv run python -m research_viz_agent.cli "brain tumor MRI" --model gpt-4o-mini
 
-# Use Microsoft Phi models
-uv run python -m research_viz_agent.cli "chest x-ray AI" --llm-provider github --model Phi-3.5-mini-instruct
+# Use Meta Llama models with vision capabilities
+uv run python -m research_viz_agent.cli "chest x-ray AI" --model Llama-3.2-11B-Vision-Instruct
 
-# Use Mistral models
-uv run python -m research_viz_agent.cli "medical imaging" --llm-provider github --model Mistral-large-2407
+# Use Microsoft Phi models (efficient)
+uv run python -m research_viz_agent.cli "heart disease detection" --model Phi-3.5-mini-instruct
+
+# Use Mistral models (multilingual support)
+uv run python -m research_viz_agent.cli "medical imaging" --model Mistral-large-2407
 ```
 
 #### Provider Information and Setup
@@ -133,7 +144,7 @@ uv run python scripts/check_llm_providers.py
 #### General Usage
 
 ```bash
-# Basic usage (defaults to OpenAI)
+# Basic usage (defaults to GitHub Models - free with GitHub Pro)
 uv run python -m research_viz_agent.cli "lung cancer detection"
 
 # With custom options
@@ -160,21 +171,28 @@ uv run python -m research_viz_agent.cli "lung cancer detection" --no-rag
 ```python
 from research_viz_agent.agents.medical_cv_agent import MedicalCVResearchAgent
 
-# Option 1: OpenAI (pay-per-use)
+# Option 1: GitHub Models (default - free with GitHub Pro) 🆓
+agent = MedicalCVResearchAgent(
+    # Uses GitHub provider by default
+    model_name="gpt-4o",  # Free GPT-4o via GitHub Models
+    pubmed_email="your-email@example.com"
+)
+
+# Option 2: Explicit GitHub Models with different model
+agent = MedicalCVResearchAgent(
+    llm_provider="github",
+    model_name="Llama-3.2-11B-Vision-Instruct",  # Free Meta Llama model
+    pubmed_email="your-email@example.com"
+)
+
+# Option 3: OpenAI (pay-per-use alternative)
 agent = MedicalCVResearchAgent(
     llm_provider="openai",
     model_name="gpt-3.5-turbo",
     pubmed_email="your-email@example.com"
 )
 
-# Option 2: GitHub Models (free with GitHub Pro)
-agent = MedicalCVResearchAgent(
-    llm_provider="github",
-    model_name="gpt-4o",  # Free GPT-4o via GitHub!
-    pubmed_email="your-email@example.com"
-)
-
-# Option 3: No AI summarization (free)
+# Option 4: No AI summarization (free data collection)
 agent = MedicalCVResearchAgent(
     llm_provider="none",
     pubmed_email="your-email@example.com"
@@ -284,8 +302,8 @@ uv pip install -e .
 ### Environment Variables
 
 **LLM Providers (choose one):**
-- `OPENAI_API_KEY`: For OpenAI models (pay-per-use)
-- `GITHUB_TOKEN`: For GitHub Models (free with GitHub Pro subscription)
+- `GITHUB_TOKEN`: For GitHub Models (free with GitHub Pro subscription) 🆓 **Recommended**
+- `OPENAI_API_KEY`: For OpenAI models (pay-per-use alternative)
 
 **Optional:**
 - `HUGGINGFACE_TOKEN`: HuggingFace API token for authenticated requests
@@ -294,20 +312,23 @@ uv pip install -e .
 
 | Provider | Cost | Setup | Models Available | Notes |
 |----------|------|-------|------------------|-------|
-| **OpenAI** | Pay-per-use | [Get API Key](https://platform.openai.com/api-keys) | GPT-3.5, GPT-4, GPT-4o | Official OpenAI API |
-| **GitHub Models** | **FREE** | [Get Token](https://github.com/settings/tokens) | GPT-4o, Llama, Phi, Mistral | Requires GitHub Pro subscription |
-| **None** | **FREE** | No setup | N/A | Collect results without AI summary |
+| **GitHub Models** 🆓 | **FREE** | [Get Token](https://github.com/settings/tokens) | GPT-4o, Llama, Phi, Mistral | **Recommended**: GitHub Pro subscription |
+| **OpenAI** | Pay-per-use | [Get API Key](https://platform.openai.com/api-keys) | GPT-3.5, GPT-4, GPT-4o | Alternative: Official OpenAI API |
+| **None** | **FREE** | No setup | N/A | Data collection only (no AI summary) |
 
-### Handling OpenAI API Issues
+### Handling API Issues
 
-If you encounter quota or billing issues:
+If you encounter provider or API issues:
 
 ```bash
-# Check your OpenAI setup
-uv run python scripts/check_openai.py
+# Test your provider setup
+uv run python scripts/check_llm_providers.py
 
-# Run without AI summarization (no OpenAI API calls)
-uv run python -m research_viz_agent.cli "lung cancer detection" --no-summary
+# Switch to free GitHub Models (recommended)
+uv run python -m research_viz_agent.cli "lung cancer detection" --llm-provider github
+
+# Run without AI summarization (completely free)
+uv run python -m research_viz_agent.cli "lung cancer detection" --llm-provider none
 
 # Search existing RAG database (no API calls needed)
 uv run python -m research_viz_agent.cli --rag-search "deep learning"
@@ -317,9 +338,10 @@ uv run python -m research_viz_agent.cli --rag-stats
 ```
 
 **Common Solutions:**
-- **Quota Exceeded**: Add billing info at [OpenAI Billing](https://platform.openai.com/account/billing)
-- **Rate Limits**: Wait a moment and retry
-- **Invalid Key**: Generate new key at [OpenAI API Keys](https://platform.openai.com/api-keys)
+- **GitHub Models**: Ensure you have GitHub Pro subscription and valid token
+- **OpenAI Issues**: Check billing at [OpenAI Billing](https://platform.openai.com/account/billing)
+- **Rate Limits**: Wait a moment and retry, or switch to GitHub Models (free)
+- **Invalid Tokens**: Generate new tokens at provider settings
 
 ### Agent Parameters
 
