@@ -73,7 +73,7 @@ def get_directory_size(directory: str) -> str:
                 return f"{total_size:.1f} {unit}"
             total_size /= 1024.0
         return f"{total_size:.1f} TB"
-    except:
+    except Exception:
         return "unknown size"
 
 def setup_provider_specific_rag():
