@@ -1,7 +1,7 @@
 """
 Unit tests for the HuggingFace MCP tool.
 """
-from unittest.mock import MagicMock, patch, Mock
+from unittest.mock import MagicMock, patch
 import mcp.types as types
 
 from research_viz_agent.mcp_tools.huggingface_tool import (
