@@ -88,7 +88,7 @@ class TestMedicalCVAgentInitialization:
         mock_llm = MagicMock(spec=ChatOpenAI)
         mock_llm_factory.create_llm.return_value = mock_llm
         
-        agent = MedicalCVResearchAgent(temperature=0.3, enable_rag=False)
+        _ = MedicalCVResearchAgent(temperature=0.3, enable_rag=False)
         
         call_args = mock_llm_factory.create_llm.call_args
         assert call_args[1]['temperature'] == 0.3
