@@ -162,7 +162,7 @@ def create_bar_chart_ascii(
             try:
                 dt = datetime.fromisoformat(timestamp)
                 time_str = dt.strftime("%Y-%m-%d %H:%M")
-            except:
+            except ValueError:
                 time_str = timestamp[:16]
         else:
             time_str = "Unknown"
