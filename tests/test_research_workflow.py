@@ -2,7 +2,7 @@
 Unit tests for the ResearchWorkflow LangGraph workflow.
 """
 import pytest
-from unittest.mock import MagicMock, patch, Mock
+from unittest.mock import MagicMock, patch
 from openai import RateLimitError
 
 from research_viz_agent.agents.research_workflow import (
