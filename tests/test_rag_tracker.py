@@ -3,7 +3,6 @@ Tests for RAG tracker functionality.
 """
 import json
 import os
-from pathlib import Path
 import pytest
 
 from research_viz_agent.utils.rag_tracker import (
