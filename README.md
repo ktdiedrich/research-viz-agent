@@ -459,6 +459,37 @@ The ChromaDB collection stores:
 - **Metadata**: Source information, URLs, publication dates, and search queries
 - **Embeddings**: Provider-specific embeddings (GitHub Models or OpenAI) for semantic similarity search
 
+### RAG Embedding Visualization & Clustering Analysis
+
+Visualize how documents are encoded and clustered in the vector database:
+
+```bash
+# Basic 2D visualization
+uv run python scripts/visualize_rag_embeddings.py --output rag_viz.png
+
+# With clustering analysis
+uv run python scripts/visualize_rag_embeddings.py --cluster --output rag_clustered.png
+
+# Interactive HTML report
+uv run python scripts/visualize_rag_embeddings.py --cluster --html rag_report.html
+
+# 3D visualization with UMAP
+uv run python scripts/visualize_rag_embeddings.py --method umap --3d --output rag_3d.png
+
+# Run complete demo
+uv run python examples/rag_embeddings_demo.py
+```
+
+**Features:**
+- 📊 2D/3D visualization of document embeddings
+- 🔍 Automatic clustering analysis (k-means, DBSCAN)
+- 📈 Silhouette scores and cluster quality metrics
+- 🎨 Color-coded by source (ArXiv, PubMed, HuggingFace)
+- 🌐 Interactive HTML reports with hover details
+- 📉 Dimensionality reduction (t-SNE, UMAP)
+
+See [docs/RAG_ENCODING_CLUSTERING.md](docs/RAG_ENCODING_CLUSTERING.md) for detailed information about how documents are encoded, stored, and clustered in the vector database.
+
 ### RAG Query Tracking & Visualization
 
 The system automatically tracks and visualizes all queries and records added to the RAG store:
