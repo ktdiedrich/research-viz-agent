@@ -1,7 +1,7 @@
 """
 Unit tests for the PubMed MCP tool.
 """
-from unittest.mock import MagicMock, patch, Mock, mock_open
+from unittest.mock import MagicMock, patch
 import mcp.types as types
 
 from research_viz_agent.mcp_tools.pubmed_tool import (
