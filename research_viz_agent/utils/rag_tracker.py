@@ -4,7 +4,7 @@ RAG Store Query Tracker - Track and visualize additions to the RAG store.
 import json
 import os
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List
 from pathlib import Path
 
 
