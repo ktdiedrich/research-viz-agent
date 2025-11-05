@@ -4,7 +4,6 @@ Demo script showing RAG tracking and visualization features.
 """
 from research_viz_agent.agents.medical_cv_agent import MedicalCVResearchAgent
 from research_viz_agent.utils.rag_tracker import create_bar_chart_ascii, create_bar_chart_html
-import os
 
 
 def main():
