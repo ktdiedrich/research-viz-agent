@@ -3,7 +3,7 @@ Unit tests for LLM factory.
 """
 import os
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 from research_viz_agent.utils.llm_factory import LLMFactory
