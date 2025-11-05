@@ -87,7 +87,7 @@ class RAGEmbeddingVisualizer:
             
             # Get all data from collection
             results = collection.get(
-                include=["embeddings", "metadatas", "documents"]
+                include=["embeddings", "metadata", "documents"]
             )
             
             # Check if we have embeddings
