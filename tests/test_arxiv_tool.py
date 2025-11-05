@@ -169,7 +169,7 @@ class TestArxivToolSearchMedicalCV:
         mock_search.return_value = [{'title': 'Medical CV Paper'}]
         
         tool = ArxivTool()
-        results = tool.search_medical_cv_models()
+        tool.search_medical_cv_models()
         
         # Verify search_papers was called with medical CV query
         mock_search.assert_called_once()
