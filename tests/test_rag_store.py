@@ -2,7 +2,7 @@
 Unit tests for the ResearchRAGStore.
 """
 import pytest
-from unittest.mock import MagicMock, patch, Mock
+from unittest.mock import MagicMock, patch
 from datetime import datetime
 from langchain_core.documents import Document
 
