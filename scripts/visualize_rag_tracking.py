@@ -3,7 +3,6 @@
 Visualize RAG store additions.
 """
 import argparse
-import sys
 from pathlib import Path
 from research_viz_agent.utils.rag_tracker import (
     RAGTracker,
