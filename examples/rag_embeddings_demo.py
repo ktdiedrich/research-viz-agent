@@ -87,7 +87,7 @@ def visualize_embeddings():
     print(f"Using: {chroma_db}\n")
     
     # Run visualization script
-    script_path = Path(__file__).parent / "visualize_rag_embeddings.py"
+    script_path = Path(__file__).parent.parent / "scripts" / "visualize_rag_embeddings.py"
     
     commands = [
         # 2D visualization with t-SNE
