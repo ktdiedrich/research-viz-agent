@@ -9,6 +9,7 @@ from datetime import datetime
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from research_viz_agent.utils.llm_factory import LLMFactory
+from research_viz_agent.utils.rag_tracker import RAGTracker
 
 
 class ResearchRAGStore:
@@ -81,6 +82,10 @@ class ResearchRAGStore:
                 self.client = self.vector_store._client
             else:
                 raise e
+        
+        # Initialize tracker AFTER persist_directory is finalized
+        tracker_file = os.path.join(self.persist_directory, "rag_tracking.json")
+        self.tracker = RAGTracker(tracking_file=tracker_file)
     
     def _create_document_id(self, source: str, identifier: str, fallback_data: str = "") -> str:
         """Create a unique document ID with fallback for missing identifiers."""
@@ -328,24 +333,51 @@ Last Modified: {model.get('last_modified', 'N/A')}
         pubmed_results: List[Dict] = None,
         huggingface_results: List[Dict] = None,
         query: str = ""
-    ) -> None:
+    ) -> Dict[str, int]:
         """
-        Store all research results in the RAG store.
+        Store all research results in the RAG store and track additions.
         
         Args:
             arxiv_results: ArXiv search results
             pubmed_results: PubMed search results
             huggingface_results: HuggingFace search results
             query: Original search query
+            
+        Returns:
+            Dictionary with counts of added records
         """
+        arxiv_count = 0
+        pubmed_count = 0
+        hf_count = 0
+        
         if arxiv_results:
+            arxiv_count = len(arxiv_results)
             self.add_arxiv_results(arxiv_results, query)
             
         if pubmed_results:
+            pubmed_count = len(pubmed_results)
             self.add_pubmed_results(pubmed_results, query)
             
         if huggingface_results:
+            hf_count = len(huggingface_results)
             self.add_huggingface_results(huggingface_results, query)
+        
+        # Track the additions
+        if query and (arxiv_count > 0 or pubmed_count > 0 or hf_count > 0):
+            self.tracker.track_query(
+                query=query,
+                arxiv_count=arxiv_count,
+                pubmed_count=pubmed_count,
+                huggingface_count=hf_count,
+                embeddings_provider=self.embeddings_provider
+            )
+        
+        return {
+            "arxiv": arxiv_count,
+            "pubmed": pubmed_count,
+            "huggingface": hf_count,
+            "total": arxiv_count + pubmed_count + hf_count
+        }
     
     def similarity_search(
         self,

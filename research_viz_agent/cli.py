@@ -6,6 +6,7 @@ import argparse
 import sys
 from research_viz_agent.agents.medical_cv_agent import MedicalCVResearchAgent
 from research_viz_agent.utils.llm_factory import LLMFactory, LLMProvider
+from research_viz_agent.utils.rag_tracker import RAGTracker, create_bar_chart_ascii
 
 
 def main():
@@ -153,6 +154,18 @@ Examples:
         help="Show provider information and setup instructions"
     )
     
+    parser.add_argument(
+        "--show-tracking",
+        action="store_true",
+        help="Show RAG query tracking chart and exit"
+    )
+    
+    parser.add_argument(
+        "--tracking-summary",
+        action="store_true",
+        help="Show RAG tracking summary statistics and exit"
+    )
+    
     args = parser.parse_args()
     
     try:
@@ -194,6 +207,39 @@ Examples:
             is_valid, message = LLMFactory.validate_provider_config(args.provider_info)
             print(f"\nConfiguration Status: {'✓' if is_valid else '✗'} {message}")
             print()
+            return
+        
+        # Handle tracking commands
+        if args.show_tracking or args.tracking_summary:
+            rag_dir = args.rag_dir or "./chroma_db"
+            # Determine provider-specific directory
+            llm_provider = args.llm_provider
+            if llm_provider == "github":
+                rag_dir = f"{rag_dir}_github"
+            elif llm_provider == "openai":
+                rag_dir = f"{rag_dir}"
+            
+            tracking_file = f"{rag_dir}/rag_tracking.json"
+            tracker = RAGTracker(tracking_file=tracking_file)
+            
+            if args.tracking_summary:
+                summary = tracker.get_summary()
+                print("\n" + "=" * 60)
+                print("RAG STORE TRACKING SUMMARY")
+                print("=" * 60)
+                print(f"Total Queries: {summary['total_queries']}")
+                print(f"Total Records: {summary['total_records']}")
+                print(f"  - ArXiv: {summary['total_arxiv']}")
+                print(f"  - PubMed: {summary['total_pubmed']}")
+                print(f"  - HuggingFace: {summary['total_huggingface']}")
+                print("=" * 60)
+                print(f"\nTracking file: {tracking_file}")
+            else:
+                queries = tracker.get_all_queries()
+                print(create_bar_chart_ascii(queries))
+                summary = tracker.get_summary()
+                print(f"\nTotal: {summary['total_queries']} queries, {summary['total_records']} records")
+                print(f"Tracking file: {tracking_file}")
             return
         
         # Require query for research operations
