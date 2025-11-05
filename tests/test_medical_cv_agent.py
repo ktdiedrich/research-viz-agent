@@ -2,7 +2,6 @@
 Unit tests for Medical CV Research Agent.
 """
 import os
-import pytest
 from unittest.mock import patch, MagicMock, Mock
 from langchain_openai import ChatOpenAI
 
