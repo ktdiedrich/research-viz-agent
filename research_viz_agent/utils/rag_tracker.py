@@ -346,7 +346,7 @@ def create_bar_chart_html(
             try:
                 dt = datetime.fromisoformat(timestamp)
                 time_str = dt.strftime("%Y-%m-%d %H:%M:%S")
-            except:
+            except ValueError:
                 time_str = timestamp
         else:
             time_str = "Unknown"
