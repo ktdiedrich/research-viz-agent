@@ -2,7 +2,7 @@
 Unit tests for ArXiv MCP tool.
 """
 import pytest
-from unittest.mock import patch, MagicMock, Mock
+from unittest.mock import patch, MagicMock
 from datetime import datetime
 import arxiv
 
