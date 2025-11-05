@@ -1,7 +1,6 @@
 """
 Unit tests for the PubMed MCP tool.
 """
-import pytest
 from unittest.mock import MagicMock, patch, Mock, mock_open
 import mcp.types as types
 
