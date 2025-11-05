@@ -27,7 +27,7 @@ class TestPubMedToolInitialization:
     def test_init_with_custom_email(self):
         """Test initialization with custom email."""
         with patch('research_viz_agent.mcp_tools.pubmed_tool.Entrez') as mock_entrez:
-            tool = PubMedTool(email="custom@test.com")
+            PubMedTool(email="custom@test.com")
             assert mock_entrez.email == "custom@test.com"
     
     def test_create_pubmed_tool_factory(self):
