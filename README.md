@@ -22,6 +22,7 @@ This agent uses **LangChain**, **LangGraph**, and **MCP (Model Context Protocol)
 - 💻 **CLI & Python API**: Use via command line or integrate into your code
 - 📚 **RAG Storage**: Provider-specific ChromaDB vector databases with matching embeddings
 - 🔎 **Semantic Search**: Find relevant research using GitHub or OpenAI embeddings
+- 📊 **Query Tracking**: Automatic visualization of queries and records added to RAG store
 - 💰 **Cost-Effective**: Completely free with GitHub Pro, or pay-per-use with OpenAI
 
 ## Installation
@@ -286,6 +287,9 @@ uv run python script.py
 # Run tests
 uv run pytest
 
+# Run tests with coverage report
+uv run pytest --cov=research_viz_agent --cov-report=term-missing
+
 # Install the package in editable mode
 uv pip install -e .
 ```
@@ -296,6 +300,70 @@ uv pip install -e .
 - **Reliable**: Deterministic resolution with lockfiles
 - **Simple**: No separate virtual environment management needed
 - **Compatible**: Works with existing Python packaging standards
+
+## Testing
+
+The project includes comprehensive test coverage with 263 tests covering all major components.
+
+### Running Tests
+
+```bash
+# Run all tests
+uv run pytest
+
+# Run tests with coverage report
+uv run pytest --cov=research_viz_agent --cov-report=term-missing
+
+# Run specific test file
+uv run pytest tests/test_cli.py
+
+# Run tests with verbose output
+uv run pytest -v
+```
+
+### Test Coverage
+
+The project maintains **85% overall test coverage** across:
+
+- **MCP Tools** (100%): ArXiv, PubMed, and HuggingFace integrations
+- **LLM Factory** (100%): Provider management and model configuration
+- **Research Workflow** (98%): LangGraph workflow orchestration
+- **Medical CV Agent** (93%): Core agent functionality
+- **RAG Store** (79%): Vector database operations
+- **CLI** (78%): Command-line interface
+
+### Coverage Report Details
+
+The `--cov-report=term-missing` flag shows:
+- **Stmts**: Total number of code statements
+- **Miss**: Number of statements not covered by tests
+- **Branch**: Number of conditional branches
+- **BrPart**: Partially covered branches
+- **Cover**: Percentage of code coverage
+- **Missing**: Line numbers of uncovered code
+
+Example output:
+```
+Name                                    Stmts   Miss Branch BrPart  Cover   Missing
+------------------------------------------------------------------------------------
+research_viz_agent/mcp_tools/arxiv_tool.py    52      0     10      0   100%
+research_viz_agent/utils/llm_factory.py       78      0     40      0   100%
+research_viz_agent/cli.py                    127     27     44      5    78%   214-243, 315
+------------------------------------------------------------------------------------
+TOTAL                                        1006    139    304     24    85%
+```
+
+### Test Organization
+
+Tests are organized by module:
+- `test_arxiv_tool.py`: ArXiv search functionality
+- `test_pubmed_tool.py`: PubMed search functionality
+- `test_huggingface_tool.py`: HuggingFace model search
+- `test_llm_factory.py`: LLM provider management
+- `test_medical_cv_agent.py`: Main agent functionality
+- `test_research_workflow.py`: LangGraph workflow
+- `test_rag_store.py`: Vector database operations
+- `test_cli.py`: Command-line interface
 
 ## Configuration
 
@@ -390,6 +458,36 @@ The ChromaDB collection stores:
 - **Models**: HuggingFace models with descriptions, tags, and usage statistics
 - **Metadata**: Source information, URLs, publication dates, and search queries
 - **Embeddings**: Provider-specific embeddings (GitHub Models or OpenAI) for semantic similarity search
+
+### RAG Query Tracking & Visualization
+
+The system automatically tracks and visualizes all queries and records added to the RAG store:
+
+```bash
+# View tracking chart in terminal
+uv run python -m research_viz_agent.cli --show-tracking
+
+# Show summary statistics
+uv run python -m research_viz_agent.cli --tracking-summary
+
+# Generate interactive HTML chart
+uv run python scripts/visualize_rag_tracking.py --html rag_chart.html
+
+# Show recent queries only
+uv run python scripts/visualize_rag_tracking.py --recent 5
+
+# Run tracking demo
+uv run python examples/rag_tracking_demo.py
+```
+
+**Features:**
+- 📊 Bar charts showing records added per query
+- 🕐 Timestamps for each query
+- 📈 Breakdown by source (ArXiv, PubMed, HuggingFace)
+- 💾 Automatic tracking of all additions
+- 🌐 HTML and ASCII chart formats
+
+See [docs/RAG_TRACKING.md](docs/RAG_TRACKING.md) for detailed documentation.
 
 ## Example Output
 
