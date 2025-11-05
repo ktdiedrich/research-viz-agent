@@ -3,7 +3,6 @@ Unit tests for the ResearchRAGStore.
 """
 import pytest
 from unittest.mock import MagicMock, patch
-from datetime import datetime
 from langchain_core.documents import Document
 
 from research_viz_agent.utils.rag_store import (
