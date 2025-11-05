@@ -2,7 +2,6 @@
 Unit tests for the CLI module.
 """
 import pytest
-import sys
 from unittest.mock import MagicMock, patch, mock_open
 from io import StringIO
 
