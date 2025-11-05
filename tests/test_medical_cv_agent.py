@@ -111,7 +111,7 @@ class TestMedicalCVAgentInitialization:
     @patch('research_viz_agent.agents.medical_cv_agent.create_huggingface_tool')
     def test_init_creates_mcp_tools(self, mock_hf, mock_pubmed, mock_arxiv, mock_workflow):
         """Test that MCP tools are created during initialization."""
-        agent = MedicalCVResearchAgent(llm_provider="none")
+        MedicalCVResearchAgent(llm_provider="none")
         
         mock_arxiv.assert_called_once()
         mock_pubmed.assert_called_once_with(email="research@example.com")
