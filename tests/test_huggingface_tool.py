@@ -1,7 +1,6 @@
 """
 Unit tests for the HuggingFace MCP tool.
 """
-import pytest
 from unittest.mock import MagicMock, patch, Mock
 import mcp.types as types
 
