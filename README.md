@@ -22,8 +22,8 @@ This agent uses **LangChain**, **LangGraph**, and **MCP (Model Context Protocol)
 - 💻 **CLI & Python API**: Use via command line or integrate into your code
 - 📚 **RAG Storage**: Provider-specific ChromaDB vector databases with matching embeddings
 - 🔎 **Semantic Search**: Find relevant research using GitHub or OpenAI embeddings
-- � **Query Tracking**: Automatic visualization of queries and records added to RAG store
-- �💰 **Cost-Effective**: Completely free with GitHub Pro, or pay-per-use with OpenAI
+- 📊 **Query Tracking**: Automatic visualization of queries and records added to RAG store
+- 💰 **Cost-Effective**: Completely free with GitHub Pro, or pay-per-use with OpenAI
 
 ## Installation
 
