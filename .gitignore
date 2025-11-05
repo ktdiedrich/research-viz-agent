@@ -42,6 +42,7 @@ htmlcov/
 .nox/
 .coverage
 .coverage.*
+.coveragerc
 .cache
 nosetests.xml
 coverage.xml
@@ -50,6 +51,11 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+
+# ChromaDB vector databases
+chroma_db/
+chroma_db_*/
+chroma_db_github/
 
 # Translations
 *.mo
