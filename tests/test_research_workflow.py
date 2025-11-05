@@ -6,8 +6,7 @@ from unittest.mock import MagicMock, patch
 from openai import RateLimitError
 
 from research_viz_agent.agents.research_workflow import (
-    ResearchWorkflow,
-    AgentState
+    ResearchWorkflow
 )
 
 
