@@ -276,9 +276,12 @@ class TestMedicalCVAgentResearch:
         
         results = agent.research("test query")
         
+        assert results['query'] == 'test query'
+        assert results['summary'] == 'Summary'
+        assert results['total_papers'] == 0
+        assert results['total_models'] == 0
         mock_rag_store.store_research_results.assert_called_once()
         mock_rag_store.get_collection_info.assert_called_once()
-    
     @patch('research_viz_agent.agents.medical_cv_agent.ResearchWorkflow')
     def test_research_rag_storage_failure_handled(self, mock_workflow_class):
         """Test that RAG storage failure doesn't break research."""
