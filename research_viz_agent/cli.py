@@ -7,6 +7,7 @@ import sys
 from research_viz_agent.agents.medical_cv_agent import MedicalCVResearchAgent
 from research_viz_agent.utils.llm_factory import LLMFactory, LLMProvider
 from research_viz_agent.utils.rag_tracker import RAGTracker, create_bar_chart_ascii
+from research_viz_agent.utils.csv_export import export_rag_results_to_csv, export_research_results_to_csv
 
 
 def main():
@@ -30,8 +31,13 @@ Examples:
   # RAG functionality
   %(prog)s --rag-search "deep learning medical imaging"
   %(prog)s --rag-search "CNN chest x-ray" --rag-source arxiv
+  %(prog)s --rag-search "deep learning" --csv rag_results.csv
   %(prog)s --rag-stats
   %(prog)s "lung cancer" --no-rag
+  
+  # Export results to CSV
+  %(prog)s "lung cancer detection" --csv results.csv
+  %(prog)s --rag-search "medical imaging" --csv search.csv --rag-results 50
   
   # Cost-saving and model options
   %(prog)s "lung cancer detection" --no-summary
@@ -79,7 +85,13 @@ Examples:
     parser.add_argument(
         "--output",
         type=str,
-        help="Save results to file"
+        help="Save results to file (text format)"
+    )
+    
+    parser.add_argument(
+        "--csv",
+        type=str,
+        help="Export results to CSV file"
     )
     
     parser.add_argument(
@@ -292,10 +304,26 @@ Examples:
                 source_filter=args.rag_source
             )
             formatted_output = agent.format_rag_results(rag_results, show_content=True)
+            
+            # Export to CSV if requested
+            if args.csv:
+                try:
+                    export_rag_results_to_csv(rag_results, args.csv)
+                    print(f"\nResults exported to {args.csv}")
+                except Exception as e:
+                    print(f"Warning: Failed to export CSV: {e}", file=sys.stderr)
         else:
             # Run regular research
             results = agent.research(args.query)
             formatted_output = agent.format_results(results, display_limit=args.display_results)
+            
+            # Export to CSV if requested
+            if args.csv:
+                try:
+                    export_research_results_to_csv(results, args.csv)
+                    print(f"\nResults exported to {args.csv}")
+                except Exception as e:
+                    print(f"Warning: Failed to export CSV: {e}", file=sys.stderr)
         
         # Display results
         print(formatted_output)

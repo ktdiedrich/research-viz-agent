@@ -441,8 +441,11 @@ uv run python -m research_viz_agent.cli "skin lesion classification"
 # Search the RAG database
 uv run python -m research_viz_agent.cli --rag-search "deep learning medical imaging"
 
-# Filter by source
-uv run python -m research_viz_agent.cli --rag-search "CNN" --rag-source arxiv
+# Export RAG search results to CSV
+uv run python -m research_viz_agent.cli --rag-search "deep learning medical imaging" --csv results.csv
+
+# Export with more results and source filtering
+uv run python -m research_viz_agent.cli --rag-search "CNN" --rag-source arxiv --rag-results 50 --csv arxiv_cnn.csv
 
 # Get database statistics
 uv run python -m research_viz_agent.cli --rag-stats
@@ -450,6 +453,29 @@ uv run python -m research_viz_agent.cli --rag-stats
 # Disable RAG for a query
 uv run python -m research_viz_agent.cli "query" --no-rag
 ```
+
+### CSV Export
+
+Export research results and RAG searches to CSV format for analysis in spreadsheet applications:
+
+```bash
+# Export regular research results
+uv run python -m research_viz_agent.cli "lung cancer detection" --csv research.csv
+
+# Export RAG search results
+uv run python -m research_viz_agent.cli --rag-search "medical imaging AI" --csv search.csv
+
+# Export with specific source filter
+uv run python -m research_viz_agent.cli --rag-search "deep learning" --rag-source pubmed --csv pubmed_papers.csv
+```
+
+**CSV columns include:**
+- Source (arxiv, pubmed, huggingface)
+- Type (paper, model)
+- Title, Authors, Abstract
+- URL, Publication Date
+- Source-specific metadata (PMID, categories, tags, downloads, etc.)
+- Query used to find the document
 
 ### RAG Database Structure
 
