@@ -8,7 +8,7 @@ Tests focus on:
 - Edge cases and error handling
 """
 import pytest
-from unittest.mock import MagicMock, patch, mock_open, Mock
+from unittest.mock import MagicMock, patch
 from io import StringIO
 import json
 
