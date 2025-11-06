@@ -4,7 +4,7 @@ Comprehensive tests for agent protocol server.
 Tests all endpoints, error handling, and server lifecycle.
 """
 import pytest
-from unittest.mock import MagicMock, patch, Mock
+from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 
 from research_viz_agent.agent_protocol.server import AgentServer, create_agent_server
