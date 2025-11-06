@@ -2,7 +2,7 @@
 Tests for agent-to-agent communication protocol.
 """
 import pytest
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import Mock, patch
 from research_viz_agent.agent_protocol.schemas import (
     AgentRequest,
     AgentResponse,
