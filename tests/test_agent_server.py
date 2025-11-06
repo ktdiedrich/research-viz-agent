@@ -8,11 +8,7 @@ from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 
 from research_viz_agent.agent_protocol.server import AgentServer, create_agent_server
-from research_viz_agent.agent_protocol.schemas import (
-    ResearchQuery,
-    RAGSearchQuery,
-    AgentRequest
-)
+# Removed unused imports: ResearchQuery, RAGSearchQuery, AgentRequest
 
 
 class TestAgentServerInitialization:
