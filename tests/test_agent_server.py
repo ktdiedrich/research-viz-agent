@@ -497,7 +497,7 @@ class TestCreateAgentServer:
         mock_agent = MagicMock()
         mock_agent_class.return_value = mock_agent
         
-        server = create_agent_server(
+        create_agent_server(
             llm_provider="github",
             enable_rag=False,
             rag_persist_dir="/custom/path"
