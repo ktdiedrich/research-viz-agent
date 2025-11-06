@@ -53,9 +53,10 @@ def export_rag_results_to_csv(rag_results: Dict, output_file: str) -> None:
                 if 'Abstract:' in content:
                     abstract_start = content.index('Abstract:') + len('Abstract:')
                     abstract_end = content.find('\n\n', abstract_start)
-                    if abstract_end > abstract_start:
+                    if abstract_end != -1:
                         abstract = content[abstract_start:abstract_end].strip()
-            
+                    else:
+                        abstract = content[abstract_start:].strip()
             # Prepare row data
             row = {
                 'source': metadata.get('source', ''),
