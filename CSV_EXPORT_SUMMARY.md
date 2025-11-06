@@ -7,7 +7,7 @@ Added CSV export functionality to the research-viz-agent, enabling users to expo
 ## Files Created/Modified
 
 ### New Files
-1. **`research_viz_agent/utils/csv_export.py`** (168 lines)
+1. **`research_viz_agent/utils/csv_export.py`** (181 lines)
    - `export_rag_results_to_csv()`: Export RAG search results to CSV
    - `export_research_results_to_csv()`: Export regular research results to CSV
    - Handles all three sources: ArXiv, PubMed, HuggingFace
