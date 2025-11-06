@@ -39,6 +39,10 @@ Examples:
   %(prog)s "lung cancer detection" --csv results.csv
   %(prog)s --rag-search "medical imaging" --csv search.csv --rag-results 50
   
+  # Agent Server (for agent-to-agent communication)
+  %(prog)s serve --port 8000
+  %(prog)s serve --host 0.0.0.0 --port 8080 --llm-provider github
+  
   # Cost-saving and model options
   %(prog)s "lung cancer detection" --no-summary
   %(prog)s "skin lesion" --llm-provider none
@@ -51,7 +55,22 @@ Examples:
         "query",
         type=str,
         nargs="?",
-        help="Research query for medical CV AI models"
+        help="Research query for medical CV AI models (or 'serve' to start server)"
+    )
+    
+    # Agent server options (only used if query == "serve")
+    parser.add_argument(
+        "--host",
+        type=str,
+        default="0.0.0.0",
+        help="Host to bind server to (only with 'serve', default: 0.0.0.0)"
+    )
+    
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8000,
+        help="Port to bind server to (only with 'serve', default: 8000)"
     )
     
     parser.add_argument(
@@ -270,7 +289,39 @@ Examples:
             print("  Falling back to no-summary mode...")
             llm_provider = "none"
         
-        # Initialize agent
+        # Handle serve command
+        if args.query == "serve":
+            from research_viz_agent.agent_protocol.server import create_agent_server
+            
+            print(f"🤖 Starting Medical CV Research Agent Server")
+            print(f"   Host: {args.host}")
+            print(f"   Port: {args.port}")
+            print(f"   LLM Provider: {llm_provider}")
+            print(f"\n📡 API Endpoints:")
+            print(f"   Base URL: http://{args.host}:{args.port}")
+            print(f"   Status: http://{args.host}:{args.port}/status")
+            print(f"   Docs: http://{args.host}:{args.port}/docs")
+            print(f"   Health: http://{args.host}:{args.port}/health")
+            print(f"\n🔧 Agent Configuration:")
+            print(f"   Max Results: {args.max_results}")
+            print(f"   RAG Enabled: {not args.no_rag}")
+            print(f"   Temperature: {args.temperature}")
+            print(f"\n   Press Ctrl+C to stop\n")
+            
+            server = create_agent_server(
+                llm_provider=llm_provider,
+                host=args.host,
+                port=args.port,
+                pubmed_email=args.email,
+                model_name=args.model,
+                temperature=args.temperature,
+                max_results=args.max_results,
+                enable_rag=not args.no_rag,
+                rag_persist_dir=args.rag_dir or "./chroma_db"
+            )
+            server.run()
+            return
+        
         print("Initializing Medical CV Research Agent...")
         
         agent = MedicalCVResearchAgent(
