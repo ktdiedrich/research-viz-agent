@@ -10,7 +10,6 @@ Tests focus on:
 import pytest
 from unittest.mock import MagicMock, patch
 from io import StringIO
-import json
 
 from research_viz_agent.cli import main
 
