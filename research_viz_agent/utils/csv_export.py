@@ -2,10 +2,7 @@
 CSV export utilities for RAG search results and research data.
 """
 import csv
-from typing import Dict, List
-from datetime import datetime
-
-
+from typing import Dict
 def export_rag_results_to_csv(rag_results: Dict, output_file: str) -> None:
     """
     Export RAG search results to CSV file.
