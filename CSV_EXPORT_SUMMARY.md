@@ -19,7 +19,7 @@ Added CSV export functionality to the research-viz-agent, enabling users to expo
    - Error handling tests (empty results, errors in results)
    - All tests passing ✓
 
-3. **`examples/csv_export_demo.py`** (134 lines)
+3. **`examples/csv_export_demo.py`** (129 lines)
    - Demo script showing three use cases:
      - Regular research export
      - RAG search export
