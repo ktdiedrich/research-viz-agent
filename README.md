@@ -24,6 +24,9 @@ This agent uses **LangChain**, **LangGraph**, and **MCP (Model Context Protocol)
 - 🔎 **Semantic Search**: Find relevant research using GitHub or OpenAI embeddings
 - 📊 **Query Tracking**: Automatic visualization of queries and records added to RAG store
 - 💰 **Cost-Effective**: Completely free with GitHub Pro, or pay-per-use with OpenAI
+- 🔗 **Agent-to-Agent Communication**: REST API server for inter-agent interaction
+- 📤 **CSV Export**: Export research and RAG results to CSV format
+- 📈 **RAG Visualization**: Visualize embeddings and clustering with t-SNE/UMAP
 
 ## Installation
 
@@ -453,6 +456,57 @@ uv run python -m research_viz_agent.cli --rag-stats
 # Disable RAG for a query
 uv run python -m research_viz_agent.cli "query" --no-rag
 ```
+
+### Agent-to-Agent Communication
+
+Start the agent as an HTTP server for agent-to-agent communication:
+
+```bash
+# Start server with default settings (port 8000)
+uv run python -m research_viz_agent.cli serve
+
+# Customize server configuration
+uv run python -m research_viz_agent.cli serve --port 8080 --host 0.0.0.0
+
+# Start with specific LLM provider
+uv run python -m research_viz_agent.cli serve --llm-provider openai --model gpt-4o-mini
+```
+
+**Access the API:**
+- Base URL: `http://localhost:8000`
+- Status: `http://localhost:8000/status`
+- Interactive Docs: `http://localhost:8000/docs`
+- Health: `http://localhost:8000/health`
+
+**Use the client to communicate with the server:**
+
+```python
+from research_viz_agent.agent_protocol.client import AgentClient
+
+# Connect to the agent
+with AgentClient(base_url="http://localhost:8000") as client:
+    # Check agent status
+    status = client.get_status()
+    print(f"Agent: {status.agent_name} v{status.version}")
+    
+    # Perform research
+    result = client.research(
+        query="lung cancer detection",
+        max_results=20
+    )
+    print(f"Found {result.total_papers} papers")
+    
+    # Search RAG database
+    rag_results = client.search_rag(query="CNN medical imaging", k=10)
+    print(f"Found {rag_results.total_count} documents")
+```
+
+See [Agent Communication Guide](docs/AGENT_COMMUNICATION.md) for full documentation including:
+- Agent orchestration examples
+- Multi-agent workflows
+- Deployment (Docker, Kubernetes)
+- Security and authentication
+- API reference
 
 ### CSV Export
 
