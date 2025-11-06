@@ -13,7 +13,7 @@ Added CSV export functionality to the research-viz-agent, enabling users to expo
    - Handles all three sources: ArXiv, PubMed, HuggingFace
    - Extracts abstracts from content when not in metadata
 
-2. **`tests/test_csv_export.py`** (302 lines)
+2. **`tests/test_csv_export.py`** (309 lines)
    - 8 comprehensive tests covering all export scenarios
    - Tests for ArXiv, PubMed, HuggingFace, and mixed results
    - Error handling tests (empty results, errors in results)
