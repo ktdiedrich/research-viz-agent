@@ -4,7 +4,6 @@ Agent Server
 HTTP server that exposes the research agent's capabilities via RESTful API,
 enabling other agents to communicate with it.
 """
-import asyncio
 import uuid
 from typing import Optional, Dict, Any
 from fastapi import FastAPI, HTTPException, BackgroundTasks
