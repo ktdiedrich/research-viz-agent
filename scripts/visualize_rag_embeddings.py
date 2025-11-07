@@ -543,6 +543,11 @@ def ensure_output_dir(file_path: Optional[str]) -> None:
     Args:
         file_path (Optional[str]): Output file path. If None or has no directory, 
             nothing is created.
+    
+    Examples:
+        - "my_output/viz.png" -> creates "my_output/" directory
+        - "viz.png" -> no directory created (uses current directory)
+        - None -> no directory created (for display mode)
     """
     if file_path:
         output_dir = os.path.dirname(file_path)
