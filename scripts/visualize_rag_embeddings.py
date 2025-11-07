@@ -606,22 +606,24 @@ def main():
     
     # Create visualizations
     if args.three_d:
-        # Ensure output directory exists and use it
+        # Use user-specified output path as-is, or None to display
         output_file = args.output
-        if output_file and not output_file.startswith('output/'):
-            os.makedirs('output', exist_ok=True)
-            output_file = f"output/{os.path.basename(output_file)}"
+        if output_file:
+            # Create parent directory for user-specified path if needed
+            output_dir = os.path.dirname(output_file)
+            if output_dir:
+                os.makedirs(output_dir, exist_ok=True)
         viz.plot_3d_scatter(embeddings_reduced, color_by='source', output_file=output_file)
     else:
         # Create multiple plots
         if args.output:
-            # Ensure output directory exists
-            os.makedirs('output', exist_ok=True)
-            
-            # If output path doesn't include output/, add it
+            # Use user-specified output path as-is
             output_path = args.output
-            if not output_path.startswith('output/'):
-                output_path = f"output/{os.path.basename(output_path)}"
+            
+            # Create parent directory for user-specified path if needed
+            output_dir = os.path.dirname(output_path)
+            if output_dir:
+                os.makedirs(output_dir, exist_ok=True)
             
             base, ext = os.path.splitext(output_path)
             
@@ -647,11 +649,14 @@ def main():
     
     # Create HTML report
     if args.html:
-        # Ensure output directory exists and use it
-        os.makedirs('output', exist_ok=True)
+        # Use user-specified HTML path as-is
         html_path = args.html
-        if not html_path.startswith('output/'):
-            html_path = f"output/{os.path.basename(html_path)}"
+        
+        # Create parent directory for user-specified path if needed
+        html_dir = os.path.dirname(html_path)
+        if html_dir:
+            os.makedirs(html_dir, exist_ok=True)
+        
         viz.create_html_report(embeddings_reduced, cluster_labels, html_path)
 
 
