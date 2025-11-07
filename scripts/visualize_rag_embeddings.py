@@ -536,6 +536,19 @@ class RAGEmbeddingVisualizer:
         print(f"\nInteractive report saved to {output_file}")
 
 
+def ensure_output_dir(file_path: Optional[str]) -> None:
+    """
+    Create parent directory for the specified file path if needed.
+    
+    Args:
+        file_path: Output file path. If None or has no directory, nothing is created.
+    """
+    if file_path:
+        output_dir = os.path.dirname(file_path)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Visualize RAG store embeddings and analyze clustering"
@@ -608,22 +621,14 @@ def main():
     if args.three_d:
         # Use user-specified output path as-is, or None to display
         output_file = args.output
-        if output_file:
-            # Create parent directory for user-specified path if needed
-            output_dir = os.path.dirname(output_file)
-            if output_dir:
-                os.makedirs(output_dir, exist_ok=True)
+        ensure_output_dir(output_file)
         viz.plot_3d_scatter(embeddings_reduced, color_by='source', output_file=output_file)
     else:
         # Create multiple plots
         if args.output:
             # Use user-specified output path as-is
             output_path = args.output
-            
-            # Create parent directory for user-specified path if needed
-            output_dir = os.path.dirname(output_path)
-            if output_dir:
-                os.makedirs(output_dir, exist_ok=True)
+            ensure_output_dir(output_path)
             
             base, ext = os.path.splitext(output_path)
             
@@ -651,12 +656,7 @@ def main():
     if args.html:
         # Use user-specified HTML path as-is
         html_path = args.html
-        
-        # Create parent directory for user-specified path if needed
-        html_dir = os.path.dirname(html_path)
-        if html_dir:
-            os.makedirs(html_dir, exist_ok=True)
-        
+        ensure_output_dir(html_path)
         viz.create_html_report(embeddings_reduced, cluster_labels, html_path)
 
 
