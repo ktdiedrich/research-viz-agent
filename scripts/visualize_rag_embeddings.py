@@ -607,11 +607,24 @@ def main():
     
     # Create visualizations
     if args.three_d:
-        viz.plot_3d_scatter(embeddings_reduced, color_by='source', output_file=args.output)
+        # Ensure output directory exists and use it
+        output_file = args.output
+        if output_file and not output_file.startswith('output/'):
+            os.makedirs('output', exist_ok=True)
+            output_file = f"output/{os.path.basename(output_file)}"
+        viz.plot_3d_scatter(embeddings_reduced, color_by='source', output_file=output_file)
     else:
         # Create multiple plots
         if args.output:
-            base, ext = os.path.splitext(args.output)
+            # Ensure output directory exists
+            os.makedirs('output', exist_ok=True)
+            
+            # If output path doesn't include output/, add it
+            output_path = args.output
+            if not output_path.startswith('output/'):
+                output_path = f"output/{os.path.basename(output_path)}"
+            
+            base, ext = os.path.splitext(output_path)
             
             # By source
             viz.plot_2d_scatter(embeddings_reduced, color_by='source', 
@@ -635,7 +648,12 @@ def main():
     
     # Create HTML report
     if args.html:
-        viz.create_html_report(embeddings_reduced, cluster_labels, args.html)
+        # Ensure output directory exists and use it
+        os.makedirs('output', exist_ok=True)
+        html_path = args.html
+        if not html_path.startswith('output/'):
+            html_path = f"output/{os.path.basename(html_path)}"
+        viz.create_html_report(embeddings_reduced, cluster_labels, html_path)
 
 
 if __name__ == "__main__":
