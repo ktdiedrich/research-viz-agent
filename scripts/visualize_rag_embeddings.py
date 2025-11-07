@@ -541,7 +541,8 @@ def ensure_output_dir(file_path: Optional[str]) -> None:
     Create parent directory for the specified file path if needed.
     
     Args:
-        file_path: Output file path. If None or has no directory, nothing is created.
+        file_path (Optional[str]): Output file path. If None or has no directory, 
+            nothing is created.
     """
     if file_path:
         output_dir = os.path.dirname(file_path)
