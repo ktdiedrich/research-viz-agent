@@ -286,25 +286,40 @@ dev-reset: clean-all ## Reset development environment (clean all + reinstall)
 	@echo "$(GREEN)✓ Development environment reset$(NC)"
 
 # Examples targets
-run-examples: ## Run all example scripts
-	@echo "$(BLUE)Running example scripts...$(NC)"
+run-examples: ## Run all standalone example scripts (excludes client/orchestration)
+	@echo "$(BLUE)Running standalone example scripts...$(NC)"
+	@echo "$(YELLOW)Note: Skipping client/orchestration examples (require running server)$(NC)"
 	@for script in examples/*.py; do \
-		echo "$(YELLOW)Running $$script...$(NC)"; \
-		$(PYTHON) $$script || true; \
-		echo ""; \
+		case "$$script" in \
+			*agent_client.py|*agent_orchestration.py|*agent_server.py) \
+				echo "$(YELLOW)Skipping $$script (requires server)$(NC)"; \
+				;; \
+			*) \
+				echo "$(BLUE)Running $$script...$(NC)"; \
+				$(PYTHON) $$script || true; \
+				echo ""; \
+				;; \
+		esac; \
 	done
 	@echo "$(GREEN)✓ Examples complete$(NC)"
+	@echo ""
+	@echo "$(BLUE)To run client examples:$(NC)"
+	@echo "  1. Start server: make example-server (or make up-background)"
+	@echo "  2. Run client: make example-client"
+	@echo "  3. Run orchestration: make example-orchestration"
 
 example-server: ## Run the agent server example
 	@echo "$(BLUE)Running agent server example...$(NC)"
 	$(PYTHON) examples/agent_server.py
 
-example-client: ## Run the agent client example
+example-client: ## Run the agent client example (requires running server)
 	@echo "$(BLUE)Running agent client example...$(NC)"
+	@echo "$(YELLOW)Note: Make sure server is running (make up-background or make example-server)$(NC)"
 	$(PYTHON) examples/agent_client.py
 
-example-orchestration: ## Run the agent orchestration example
+example-orchestration: ## Run the agent orchestration example (requires running server)
 	@echo "$(BLUE)Running agent orchestration example...$(NC)"
+	@echo "$(YELLOW)Note: Make sure server is running (make up-background or make example-server)$(NC)"
 	$(PYTHON) examples/agent_orchestration.py
 
 # Utility targets

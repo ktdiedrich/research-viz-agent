@@ -18,7 +18,7 @@ def main():
     agent = MedicalCVResearchAgent(
         llm_provider="github",
         enable_rag=True,
-        rag_persist_dir="./demo_chroma_db"
+        rag_persist_dir="./chroma_db_demo"
     )
     
     # Run a few research queries
@@ -59,7 +59,9 @@ def main():
         print(f"  - HuggingFace: {summary['total_huggingface']}")
         
         # Generate HTML chart
-        html_file = "./demo_rag_chart.html"
+        html_file = "./output/demo_rag_chart.html"
+        import os
+        os.makedirs("./output", exist_ok=True)
         create_bar_chart_html(queries_data, html_file)
         print(f"\n✓ HTML chart saved to: {html_file}")
         print(f"  Open it in your browser to see the interactive visualization!")
@@ -70,7 +72,7 @@ def main():
     print("DEMO COMPLETE")
     print("=" * 80)
     print("\nYou can now:")
-    print("  1. Open demo_rag_chart.html in your browser")
+    print("  1. Open output/demo_rag_chart.html in your browser")
     print("  2. Run: python -m research_viz_agent.cli --show-tracking")
     print("  3. Run: python -m research_viz_agent.cli --tracking-summary")
     print("  4. Run: python scripts/visualize_rag_tracking.py")
