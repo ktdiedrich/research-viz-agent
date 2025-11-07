@@ -1,6 +1,8 @@
 """
 Demo script showing CSV export functionality for research results and RAG searches.
 """
+import os
+
 from research_viz_agent.agents.medical_cv_agent import MedicalCVResearchAgent
 from research_viz_agent.utils.csv_export import export_rag_results_to_csv, export_research_results_to_csv
 
@@ -25,7 +27,6 @@ def demo_research_export():
     print(f"Found {results['total_papers']} papers")
     
     # Export to CSV
-    import os
     os.makedirs("output", exist_ok=True)
     output_file = "output/research_export_demo.csv"
     export_research_results_to_csv(results, output_file)
@@ -61,7 +62,6 @@ def demo_rag_export():
         print(f"Found {rag_results['total_count']} relevant documents")
         
         # Export to CSV
-        import os
         os.makedirs("output", exist_ok=True)
         output_file = "output/rag_search_demo.csv"
         export_rag_results_to_csv(rag_results, output_file)
@@ -92,7 +92,6 @@ def demo_filtered_export():
         print(f"Found {rag_results['total_count']} ArXiv papers")
         
         # Export to CSV
-        import os
         os.makedirs("output", exist_ok=True)
         output_file = "output/arxiv_cnn_demo.csv"
         export_rag_results_to_csv(rag_results, output_file)

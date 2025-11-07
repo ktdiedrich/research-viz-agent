@@ -6,11 +6,10 @@ reduces dimensionality using UMAP/t-SNE, and creates visualizations
 showing how documents cluster by source and semantic similarity.
 """
 import argparse
-import json
 import os
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, Optional
 import warnings
 
 # Add parent directory to path
