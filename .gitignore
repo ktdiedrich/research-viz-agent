@@ -54,9 +54,7 @@ coverage.xml
 cover/
 
 # ChromaDB vector databases
-chroma_db/
 chroma_db_*/
-chroma_db_github/
 
 # Translations
 *.mo
@@ -215,5 +213,9 @@ __marimo__/
 
 # Scratch files
 scratch.txt
+
+# Server files
+.server.pid
+server.log
 
 *:Zone.Identifier
