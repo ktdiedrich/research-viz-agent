@@ -536,6 +536,25 @@ class RAGEmbeddingVisualizer:
         print(f"\nInteractive report saved to {output_file}")
 
 
+def ensure_output_dir(file_path: Optional[str]) -> None:
+    """
+    Create parent directory for the specified file path if needed.
+    
+    Args:
+        file_path (Optional[str]): Output file path. If None or has no directory, 
+            nothing is created.
+    
+    Examples:
+        - "my_output/viz.png" -> creates "my_output/" directory
+        - "viz.png" -> no directory created (uses current directory)
+        - None -> no directory created (for display mode)
+    """
+    if file_path:
+        output_dir = os.path.dirname(file_path)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Visualize RAG store embeddings and analyze clustering"
@@ -606,22 +625,16 @@ def main():
     
     # Create visualizations
     if args.three_d:
-        # Ensure output directory exists and use it
+        # Use user-specified output path as-is, or None to display
         output_file = args.output
-        if output_file and not output_file.startswith('output/'):
-            os.makedirs('output', exist_ok=True)
-            output_file = f"output/{os.path.basename(output_file)}"
+        ensure_output_dir(output_file)
         viz.plot_3d_scatter(embeddings_reduced, color_by='source', output_file=output_file)
     else:
         # Create multiple plots
         if args.output:
-            # Ensure output directory exists
-            os.makedirs('output', exist_ok=True)
-            
-            # If output path doesn't include output/, add it
+            # Use user-specified output path as-is
             output_path = args.output
-            if not output_path.startswith('output/'):
-                output_path = f"output/{os.path.basename(output_path)}"
+            ensure_output_dir(output_path)
             
             base, ext = os.path.splitext(output_path)
             
@@ -647,11 +660,9 @@ def main():
     
     # Create HTML report
     if args.html:
-        # Ensure output directory exists and use it
-        os.makedirs('output', exist_ok=True)
+        # Use user-specified HTML path as-is
         html_path = args.html
-        if not html_path.startswith('output/'):
-            html_path = f"output/{os.path.basename(html_path)}"
+        ensure_output_dir(html_path)
         viz.create_html_report(embeddings_reduced, cluster_labels, html_path)
 
 
