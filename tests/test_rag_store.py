@@ -27,8 +27,8 @@ class TestResearchRAGStoreInitialization:
         
         store = ResearchRAGStore()
         
-        assert store.persist_directory == "./chroma_db"
-        assert store.collection_name == "medical_cv_research"
+        assert store.persist_directory == "./chroma_db_default"
+        assert store.collection_name == "research_results"  # Default for ResearchRAGStore.__init__
         assert store.embeddings_provider == "openai"
         mock_create_embeddings.assert_called_once_with(
             provider="openai",
@@ -614,9 +614,9 @@ class TestResearchRAGStoreCollectionInfo:
         store = ResearchRAGStore()
         info = store.get_collection_info()
         
-        assert info["collection_name"] == "medical_cv_research"
+        assert info["collection_name"] == "research_results"  # Default for ResearchRAGStore
         assert info["document_count"] == 42
-        assert info["persist_directory"] == "./chroma_db"
+        assert info["persist_directory"] == "./chroma_db_default"
         assert "error" not in info
     
     @patch('research_viz_agent.utils.rag_store.Chroma')

@@ -31,11 +31,13 @@ def main():
     
     print(formatted_output)
     
-    # Optionally save to file
-    with open("research_output.txt", "w", encoding="utf-8") as f:
+    # Save results to file
+    import os
+    os.makedirs("output", exist_ok=True)
+    with open("output/research_output.txt", "w", encoding="utf-8") as f:
         f.write(formatted_output)
     
-    print("\n\nResults saved to research_output.txt")
+    print("\n\nResults saved to output/research_output.txt")
 
 
 if __name__ == "__main__":

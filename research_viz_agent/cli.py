@@ -242,13 +242,16 @@ Examples:
         
         # Handle tracking commands
         if args.show_tracking or args.tracking_summary:
-            rag_dir = args.rag_dir or "./chroma_db"
             # Determine provider-specific directory
             llm_provider = args.llm_provider
-            if llm_provider == "github":
-                rag_dir = f"{rag_dir}_github"
+            if args.rag_dir:
+                rag_dir = args.rag_dir
+            elif llm_provider == "github":
+                rag_dir = "./chroma_db_github"
             elif llm_provider == "openai":
-                rag_dir = f"{rag_dir}"
+                rag_dir = "./chroma_db_openai"
+            else:
+                rag_dir = "./chroma_db_github"  # Default to github
             
             tracking_file = f"{rag_dir}/rag_tracking.json"
             tracker = RAGTracker(tracking_file=tracking_file)
@@ -317,7 +320,7 @@ Examples:
                 temperature=args.temperature,
                 max_results=args.max_results,
                 enable_rag=not args.no_rag,
-                rag_persist_dir=args.rag_dir or "./chroma_db"
+                rag_persist_dir=args.rag_dir  # Will be set to provider-specific in agent
             )
             server.run()
             return
@@ -331,7 +334,7 @@ Examples:
             temperature=args.temperature,
             max_results=args.max_results,
             enable_rag=not args.no_rag,
-            rag_persist_dir=args.rag_dir or "./chroma_db"
+            rag_persist_dir=args.rag_dir  # Will be set to provider-specific in agent
         )
         
         # Handle RAG statistics request

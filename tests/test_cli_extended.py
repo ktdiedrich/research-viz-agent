@@ -240,10 +240,11 @@ class TestCLIRAGTracking:
         with patch('sys.stdout', new=StringIO()):
             main()
             
-            # Verify tracker was initialized with standard directory
+            # Verify tracker was initialized with provider-specific directory
             call_args = mock_tracker_class.call_args
             tracking_file = call_args[1]['tracking_file']
-            assert 'chroma_db/rag_tracking.json' in tracking_file
+            # OpenAI provider should use chroma_db_openai
+            assert 'chroma_db_openai/rag_tracking.json' in tracking_file
     
     @patch('research_viz_agent.cli.RAGTracker')
     @patch('sys.argv', ['cli.py', '--tracking-summary', '--rag-dir', '/custom/path'])
@@ -264,7 +265,8 @@ class TestCLIRAGTracking:
             
             call_args = mock_tracker_class.call_args
             tracking_file = call_args[1]['tracking_file']
-            assert '/custom/path_github' in tracking_file
+            # Custom RAG dir should be used as-is
+            assert '/custom/path/rag_tracking.json' in tracking_file
 
 
 class TestCLICSVExport:

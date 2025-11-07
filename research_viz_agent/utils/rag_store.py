@@ -19,8 +19,8 @@ class ResearchRAGStore:
     
     def __init__(
         self,
-        persist_directory: str = "./chroma_db",
-        collection_name: str = "medical_cv_research",
+        persist_directory: str = "./chroma_db_default",
+        collection_name: str = "research_results",
         embeddings_provider: str = "openai",
         api_key: Optional[str] = None,
         base_url: Optional[str] = None,
@@ -511,7 +511,7 @@ Last Modified: {model.get('last_modified', 'N/A')}
 
 
 def create_rag_store(
-    persist_directory: str = "./chroma_db",
+    persist_directory: str = "./chroma_db_default",
     collection_name: str = "medical_cv_research",
     embeddings_provider: str = "openai",
     api_key: Optional[str] = None,

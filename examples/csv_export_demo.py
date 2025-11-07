@@ -1,6 +1,8 @@
 """
 Demo script showing CSV export functionality for research results and RAG searches.
 """
+import os
+
 from research_viz_agent.agents.medical_cv_agent import MedicalCVResearchAgent
 from research_viz_agent.utils.csv_export import export_rag_results_to_csv, export_research_results_to_csv
 
@@ -25,7 +27,8 @@ def demo_research_export():
     print(f"Found {results['total_papers']} papers")
     
     # Export to CSV
-    output_file = "research_export_demo.csv"
+    os.makedirs("output", exist_ok=True)
+    output_file = "output/research_export_demo.csv"
     export_research_results_to_csv(results, output_file)
     print(f"\n✓ Exported results to {output_file}")
     print(f"  Contains papers from ArXiv and PubMed")
@@ -59,7 +62,8 @@ def demo_rag_export():
         print(f"Found {rag_results['total_count']} relevant documents")
         
         # Export to CSV
-        output_file = "rag_search_demo.csv"
+        os.makedirs("output", exist_ok=True)
+        output_file = "output/rag_search_demo.csv"
         export_rag_results_to_csv(rag_results, output_file)
         print(f"\n✓ Exported RAG search results to {output_file}")
         print(f"  Contains semantically relevant papers from your RAG database")
@@ -88,7 +92,8 @@ def demo_filtered_export():
         print(f"Found {rag_results['total_count']} ArXiv papers")
         
         # Export to CSV
-        output_file = "arxiv_cnn_demo.csv"
+        os.makedirs("output", exist_ok=True)
+        output_file = "output/arxiv_cnn_demo.csv"
         export_rag_results_to_csv(rag_results, output_file)
         print(f"\n✓ Exported filtered results to {output_file}")
     else:
@@ -114,10 +119,10 @@ def main():
         print("\n" + "="*60)
         print("DEMOS COMPLETE")
         print("="*60)
-        print("\nCSV files created:")
-        print("  - research_export_demo.csv  (regular research)")
-        print("  - rag_search_demo.csv       (RAG search)")
-        print("  - arxiv_cnn_demo.csv        (filtered RAG search)")
+        print("\nCSV files created in output/ directory:")
+        print("  - output/research_export_demo.csv  (regular research)")
+        print("  - output/rag_search_demo.csv       (RAG search)")
+        print("  - output/arxiv_cnn_demo.csv        (filtered RAG search)")
         print("\nYou can open these in Excel, Google Sheets, or any CSV viewer.")
         
     except Exception as e:

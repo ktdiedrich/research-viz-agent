@@ -33,7 +33,10 @@ This agent uses **LangChain**, **LangGraph**, and **MCP (Model Context Protocol)
 ### Prerequisites
 
 - Python 3.12 or higher
-- UV (install via `curl -LsSf https://astral.sh/uv/install.sh | sh` or see [UV installation](https://docs.astral.sh/uv/getting-started/installation/))
+- **UV package manager** (required)
+  - Install: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+  - Or see [UV installation guide](https://docs.astral.sh/uv/getting-started/installation/)
+  - UV replaces pip/virtualenv and is 10-100x faster
 - **Choose your AI provider** (optional - can run without AI for data collection only):
   - **🆓 GitHub Pro + GitHub token** (recommended - free AI models!)
   - OpenAI API key (pay-per-use alternative)
@@ -49,11 +52,10 @@ cd research-viz-agent
 
 2. Install dependencies with UV:
 ```bash
+# Install for normal use
 uv sync
-```
 
-Or for development with additional tools:
-```bash
+# Or install for development (includes testing tools)
 uv sync --extra dev
 ```
 
@@ -80,13 +82,14 @@ export OPENAI_API_KEY=your_openai_key_here
 # Collects research data without AI summarization
 ```
 
-4. Activate the UV virtual environment:
+4. Run commands with UV:
 ```bash
 # UV automatically manages the virtual environment
-# To run commands in the environment, prefix with 'uv run'
-# or activate manually:
+# Run any command in the environment with 'uv run'
+uv run python -m research_viz_agent.cli --help
+
+# Or activate manually if preferred:
 source .venv/bin/activate  # Linux/macOS
-# or
 .venv\Scripts\activate     # Windows
 ```
 
@@ -270,13 +273,29 @@ research-viz-agent/
 
 ## UV Package Management
 
-This project uses [UV](https://docs.astral.sh/uv/) for fast, reliable Python package management and project setup.
+This project **requires** [UV](https://docs.astral.sh/uv/) for package management. UV is a modern, fast Python package manager that replaces pip/virtualenv.
+
+### Installing UV
+
+```bash
+# Linux/macOS
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows (PowerShell)
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# Or via pip (if you have it)
+pip install uv
+```
 
 ### Key UV Commands
 
 ```bash
 # Install dependencies and create virtual environment
 uv sync
+
+# Install with development dependencies
+uv sync --extra dev
 
 # Add a new dependency
 uv add package-name
@@ -287,22 +306,56 @@ uv add --dev package-name
 # Run a command in the UV environment
 uv run python script.py
 
+# Run the CLI
+uv run python -m research_viz_agent.cli "your query"
+
 # Run tests
 uv run pytest
 
-# Run tests with coverage report
+# Run tests with coverage
 uv run pytest --cov=research_viz_agent --cov-report=term-missing
 
 # Install the package in editable mode
 uv pip install -e .
 ```
 
-### Why UV?
+### Alternative: Using Make
+
+This project includes a Makefile with convenient shortcuts:
+
+```bash
+# Install dependencies
+make install          # Production install
+make install-dev      # Development install
+
+# Run tests
+make test            # Full test suite with coverage
+make test-fast       # Skip coverage for speed
+make test-cli        # Just CLI tests
+
+# Code quality
+make format          # Format code
+make lint            # Run linter
+make check           # Format + lint + test
+
+# Start server
+make serve           # Start agent server
+make serve-dev       # Start with auto-reload
+
+# Run research
+make research QUERY="lung cancer detection"
+
+# Show help
+make help            # List all available targets
+```
+
+### Why UV is Required
 
 - **Fast**: 10-100x faster than pip and poetry
-- **Reliable**: Deterministic resolution with lockfiles
-- **Simple**: No separate virtual environment management needed
-- **Compatible**: Works with existing Python packaging standards
+- **Reliable**: Deterministic dependency resolution with `uv.lock`
+- **Simple**: No separate virtual environment management
+- **Compatible**: Works with standard Python packaging (pyproject.toml)
+- **Modern**: Built in Rust for performance and reliability
 
 ## Testing
 
@@ -420,7 +473,7 @@ uv run python -m research_viz_agent.cli --rag-stats
 - `temperature`: LLM temperature for creativity (default: `0.7`)
 - `pubmed_email`: Email for PubMed API (required by NCBI)
 - `enable_rag`: Enable RAG storage and search (default: `True`)
-- `rag_persist_dir`: Directory for ChromaDB storage (default: `./chroma_db`)
+- `rag_persist_dir`: Directory for ChromaDB storage (default: provider-specific `./chroma_db_openai` or `./chroma_db_github`)
 
 ## RAG (Retrieval-Augmented Generation) Features
 

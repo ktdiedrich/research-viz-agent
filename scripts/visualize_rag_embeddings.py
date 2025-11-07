@@ -6,11 +6,10 @@ reduces dimensionality using UMAP/t-SNE, and creates visualizations
 showing how documents cluster by source and semantic similarity.
 """
 import argparse
-import json
 import os
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, Optional
 import warnings
 
 # Add parent directory to path
@@ -87,7 +86,7 @@ class RAGEmbeddingVisualizer:
             
             # Get all data from collection
             results = collection.get(
-                include=["embeddings", "metadata", "documents"]
+                include=["embeddings", "metadatas", "documents"]
             )
             
             # Check if we have embeddings
@@ -537,6 +536,25 @@ class RAGEmbeddingVisualizer:
         print(f"\nInteractive report saved to {output_file}")
 
 
+def ensure_output_dir(file_path: Optional[str]) -> None:
+    """
+    Create parent directory for the specified file path if needed.
+    
+    Args:
+        file_path (Optional[str]): Output file path. If None or has no directory, 
+            nothing is created.
+    
+    Examples:
+        - "my_output/viz.png" -> creates "my_output/" directory
+        - "viz.png" -> no directory created (uses current directory)
+        - None -> no directory created (for display mode)
+    """
+    if file_path:
+        output_dir = os.path.dirname(file_path)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Visualize RAG store embeddings and analyze clustering"
@@ -607,11 +625,18 @@ def main():
     
     # Create visualizations
     if args.three_d:
-        viz.plot_3d_scatter(embeddings_reduced, color_by='source', output_file=args.output)
+        # Use user-specified output path as-is, or None to display
+        output_file = args.output
+        ensure_output_dir(output_file)
+        viz.plot_3d_scatter(embeddings_reduced, color_by='source', output_file=output_file)
     else:
         # Create multiple plots
         if args.output:
-            base, ext = os.path.splitext(args.output)
+            # Use user-specified output path as-is
+            output_path = args.output
+            ensure_output_dir(output_path)
+            
+            base, ext = os.path.splitext(output_path)
             
             # By source
             viz.plot_2d_scatter(embeddings_reduced, color_by='source', 
@@ -635,7 +660,10 @@ def main():
     
     # Create HTML report
     if args.html:
-        viz.create_html_report(embeddings_reduced, cluster_labels, args.html)
+        # Use user-specified HTML path as-is
+        html_path = args.html
+        ensure_output_dir(html_path)
+        viz.create_html_report(embeddings_reduced, cluster_labels, html_path)
 
 
 if __name__ == "__main__":
