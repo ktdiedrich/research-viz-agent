@@ -144,14 +144,14 @@ clean-coverage: ## Remove coverage reports
 clean-rag: ## Remove RAG database directories
 	@echo "$(BLUE)Cleaning RAG databases...$(NC)"
 	@echo "$(YELLOW)Warning: This will delete all RAG databases!$(NC)"
-	@read -p "Continue? [y/N] " -n 1 -r; \
+	@bash -c 'read -p "Continue? [y/N] " -n 1 -r; \
 	echo; \
 	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
 		rm -rf chroma_db* 2>/dev/null || true; \
 		echo "$(GREEN)✓ RAG databases removed$(NC)"; \
 	else \
 		echo "$(YELLOW)Cancelled$(NC)"; \
-	fi
+	fi'
 
 clean-all: clean clean-coverage ## Remove all generated files (build, cache, coverage)
 	@echo "$(GREEN)✓ Full cleanup complete$(NC)"
