@@ -473,7 +473,7 @@ uv run python -m research_viz_agent.cli --rag-stats
 - `temperature`: LLM temperature for creativity (default: `0.7`)
 - `pubmed_email`: Email for PubMed API (required by NCBI)
 - `enable_rag`: Enable RAG storage and search (default: `True`)
-- `rag_persist_dir`: Directory for ChromaDB storage (default: `./chroma_db`)
+- `rag_persist_dir`: Directory for ChromaDB storage (default: provider-specific `./chroma_db_openai` or `./chroma_db_github`)
 
 ## RAG (Retrieval-Augmented Generation) Features
 

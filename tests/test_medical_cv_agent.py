@@ -205,11 +205,11 @@ class TestMedicalCVAgentRAGFunctionality:
         
         agent = MedicalCVResearchAgent(
             enable_rag=True,
-            rag_persist_dir="./custom_rag_dir"
+            rag_persist_dir="./chroma_db_custom_rag"
         )
         
         call_args = mock_rag_store.call_args
-        assert call_args[1]['persist_directory'] == "./custom_rag_dir"
+        assert call_args[1]['persist_directory'] == "./chroma_db_custom_rag"
     
     @patch('research_viz_agent.agents.medical_cv_agent.ResearchWorkflow')
     @patch('research_viz_agent.agents.medical_cv_agent.create_rag_store')

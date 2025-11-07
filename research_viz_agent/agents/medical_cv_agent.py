@@ -31,7 +31,7 @@ class MedicalCVResearchAgent:
         temperature: float = 0.7,
         max_results: int = 20,
         enable_rag: bool = True,
-        rag_persist_dir: str = "./chroma_db",
+        rag_persist_dir: Optional[str] = None,
         skip_llm_init: bool = False
     ):
         """
@@ -112,11 +112,11 @@ class MedicalCVResearchAgent:
             try:
                 # Use provider-specific RAG directories and embeddings to avoid conflicts
                 if llm_provider == "openai":
-                    provider_rag_dir = rag_persist_dir if rag_persist_dir != "./chroma_db" else "./chroma_db_openai"
+                    provider_rag_dir = rag_persist_dir or "./chroma_db_openai"
                     embeddings_provider = "openai"
                     embeddings_api_key = self.api_key
                 elif llm_provider == "github":
-                    provider_rag_dir = rag_persist_dir if rag_persist_dir != "./chroma_db" else "./chroma_db_github"
+                    provider_rag_dir = rag_persist_dir or "./chroma_db_github"
                     embeddings_provider = "github"
                     embeddings_api_key = self.api_key  # Use GitHub token for embeddings
                 
@@ -134,8 +134,8 @@ class MedicalCVResearchAgent:
                 error_msg = str(e)
                 if "different settings" in error_msg or "already exists" in error_msg:
                     print(f"⚠ RAG store conflict detected: {e}")
-                    print(f"  Try using --no-rag or run: python scripts/manage_chromadb.py --clear ./chroma_db")
-                    print(f"  Or use provider-specific directory with different --rag-persist-dir")
+                    print(f"  Try using --no-rag or clearing the RAG directory: rm -rf {provider_rag_dir}")
+                    print(f"  Or use a different --rag-persist-dir")
                 else:
                     print(f"⚠ RAG store initialization failed: {e}")
                 print("  Continuing without RAG functionality...")
